@@ -1,0 +1,258 @@
+grid#white_grid{
+  background-color: white;
+}
+
+label#label_select_account {
+  color: white;
+  background-color: #66B2FF;
+  background-image: url("");
+}
+label#login_label {
+  background-image: url("./images/background.jpg");
+}
+
+label#message:nth-child(even) {
+  background-color: #F2F2F2;
+  background-image: url("");
+}
+
+button#add_account {
+  color: white;
+  background-color: #66B2FF;
+  background-image: url("");
+  border-width: 0;
+  border-radius: 0;
+  border-image-width: 0;
+}
+
+button#add_topic {
+  color: white;
+  background-color: #66B2FF;
+  background-image: url("");
+  border-width: 0;
+  border-radius: 0;
+  border-image-width: 0;
+}
+
+button#send_message {
+  color: white;
+  background-color: #66B2FF;
+  background-image: url("");
+  border-width: 0;
+  border-radius: 0;
+  border-image-width: 0;
+}
+
+button#log_in {
+  color: white;
+  background-color: #66B2FF;
+  background-image: url("");
+  border-width: 0;
+  border-radius: 0;
+  border-image-width: 0;
+}
+
+button#account {
+  color: black;
+  background-color: white;
+  background-image: url("");
+  border-width: 0;
+  border-radius: 0;
+  border-image-width: 0;
+}
+
+
+button#delete {
+
+  background-image: url("./images/delete.png");
+  background-repeat: no-repeat;
+  background-position: center;
+  border-width: 0;
+  border-radius: 0;
+  border-image-width: 0;
+
+}
+
+button#remove_account {
+
+  background-image: url("./images/delete.png");
+  background-color: white;
+  background-repeat: no-repeat;
+  background-position: center;
+  border-width: 0;
+  border-radius: 0;
+  border-image-width: 0;
+
+}
+
+list#white_box {
+  background-color: white;
+}
+
+box#messages_box {
+  background-color: white;
+}
+
+box#messages_box :nth-child(even) {
+  background-color: #F2F2F2;
+}
+
+label#settings {
+
+  background-image: url("./images/settings.png");
+  background-repeat: no-repeat;
+  background-size: 90%;
+}
+
+label#clean_session {
+
+  background-image: url("./images/cleansession.png");
+  background-repeat: no-repeat;
+  background-size: 90%;
+}
+
+label#client_id {
+
+  background-image: url("./images/clienid.png");
+  background-repeat: no-repeat;
+  background-size: 90%;
+}
+
+label#host {
+
+  background-image: url("./images/host.png");
+  background-repeat: no-repeat;
+  background-size: 90%;
+}
+
+label#keepalive {
+
+  background-image: url("./images/keepalive.png");
+  background-repeat: no-repeat;
+  background-size: 90%;
+}
+
+label#password {
+
+  background-image: url("./images/password.png");
+  background-repeat: no-repeat;
+  background-size: 90%;
+}
+
+label#username {
+
+  background-image: url("./images/username.png");
+  background-repeat: no-repeat;
+  background-size: 90%;
+}
+
+label#settings_send {
+
+  background-image: url("./images/settings.png");
+  background-repeat: no-repeat;
+  background-size: 85%;
+}
+
+label#qos_label {
+	background-color: yellow;
+	color: black;
+	border-radius: 10px;
+}
+
+label#messages_qos_label {
+
+  background-image: linear-gradient(to top, #66B2FF 50%, yellow 50%);
+  color: black;
+  border-radius: 10px;
+
+}
+
+stackswitcher button:nth-child(1):checked {
+
+  color: transparent;
+  background-color: white;
+  background-image: url("./images/topics_blue.png");
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 110%;
+}
+
+stackswitcher button:nth-child(1) {
+
+  color: transparent;
+  background-color: white;
+  background-image: url("./images/topics_gray.png");
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 110%;
+}
+
+stackswitcher button:nth-child(2):checked {
+
+  color: transparent;
+  background-color: white;
+  background-image: url("./images/send_msg_blue.png");
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 90%;
+}
+
+stackswitcher button:nth-child(2) {
+
+  color: transparent;
+  background-color: white;
+  background-image: url("./images/send_msg_gray.png");
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 90%;
+}
+
+stackswitcher button:nth-child(3):checked {
+
+  color: transparent;
+  background-color: white;
+  background-image: url("./images/msg_blue.png");
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 90%;
+}
+
+stackswitcher button:nth-child(3) {
+
+  color: transparent;
+  background-color: white;
+  background-image: url("./images/msg_gray.png");
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 90%;
+}
+
+stackswitcher button:nth-child(4):checked {
+
+  color: transparent;
+  background-color: white;
+  background-image: url("./images/logout_blue.png");
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 110%;
+}
+
+stackswitcher button:nth-child(4) {
+
+  color: transparent;
+  background-color: white;
+  background-image: url("./images/logout_gray.png");
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 110%;
+}
+
+window {
+ background-image: url("./images/background.jpg");
+}
+
+window#login_window {
+  background-color: white;
+  background-image: url("");
+}
+

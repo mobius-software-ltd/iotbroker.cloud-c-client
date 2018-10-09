@@ -1,0 +1,22 @@
+/*
+ * helpers.h
+ *
+ *  Created on: Jun 25, 2018
+ *      Author: konstantinnosach
+ */
+#ifndef HELPERS_H_
+#define HELPERS_H_
+
+char *utf8_check(char *s);
+int add_short(char * buf, unsigned short s);
+unsigned short get_short(char* array, int offset);
+struct LengthDetails decode_remaining_length(char buf[]);
+int add_packet_length(int length, char * remaining_length);
+int remaining_length(int length);
+
+struct LengthDetails {
+	int length;
+	int bytes_used;
+};
+
+#endif /* HELPERS_H_ */
