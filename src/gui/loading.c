@@ -14,6 +14,7 @@
 #include "../account.h"
 #include "../mqtt/mqtt_client.h"
 #include "../mqttsn/mqtt_sn_client.h"
+#include "../coap/coap_client.h"
 #include "../mqtt_listener.h"
 #include "main_w.h"
 #include "gui_color.h"
@@ -90,14 +91,33 @@ void activate_main_window_default (GtkButton * button, struct Account * _account
 
 	if(current_protocol == MQTT) {
 		if (init_mqtt_client(account, mqtt_listener) != 0) {
+			printf("MQTT client: CONNECTION FAILED!!!\n");
 			//TODO WARNING WINDOW CONNECTION FAILED
 			return;
 		}
-	} else {
+	} else if (current_protocol == MQTT_SN){
 		if (init_mqtt_sn_client(account, mqtt_listener) != 0) {
+			printf("MQTT-SN client: CONNECTION FAILED!!!\n");
 			//TODO WARNING WINDOW CONNECTION FAILED
 			return;
 		}
+	} else if(current_protocol == COAP) {
+		if (init_coap_client(account, mqtt_listener) != 0) {
+			printf("COAP client: CONNECTION FAILED!!!\n");
+			//TODO WARNING WINDOW CONNECTION FAILED
+			return;
+		}
+	} else if(current_protocol == AMQP) {
+		printf("Error: unsupported protocol : %i \n", current_protocol);
+		return;
+//		if (init_coap_client(account, mqtt_listener) != 0) {
+//			printf("AMQP client: CONNECTION FAILED!!!\n");
+//			//TODO WARNING WINDOW CONNECTION FAILED
+//			return;
+//		}
+	} else {
+		printf("Error: unsupported protocol : %i \n", current_protocol);
+		exit(1);
 	}
 	mqtt_listener->send_connect(account);
 

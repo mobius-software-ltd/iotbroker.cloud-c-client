@@ -46,7 +46,7 @@ struct Account * account = NULL;
 static int current_packet_number = 0;
 static int delay_in_seconds = 0;
 
-void process_sn_rx(char * data);
+void process_sn_rx(char * data, int length);
 void send_sn_connect(struct Account * acc);
 void send_sn_subscribe(const char * topic_name, int qos);
 void send_sn_unsubscribe(const char * topic_name);
@@ -333,7 +333,7 @@ void send_sn_disconnect() {
 	sn_encode_and_fire(sn_message);
 }
 
-void process_sn_rx(char * data) {
+void process_sn_rx(char * data, int length) {
 
 	struct SnMessage * sn_message = sn_decode(data);
 

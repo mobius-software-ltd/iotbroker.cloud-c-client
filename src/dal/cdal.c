@@ -108,15 +108,26 @@ void insert_data (GdaConnection *cnc, struct Account * account)
 {
 	gboolean res;
 	GError *error = NULL;
-	GValue *protocol,*username,*password,*client_id,*server_host,*server_port,
-	*clean_session, * keep_alive, *will, *will_topic, *is_retain, *qos, *is_default;
+	GValue *protocol,*server_host,*server_port,
+	*clean_session, * keep_alive, *is_retain, *qos, *is_default;
+	GValue *username = NULL;
+	GValue *password = NULL;
+	GValue *will = NULL;
+	GValue *will_topic = NULL;
+	GValue *client_id = NULL;
+
+
 
 	protocol = gda_value_new (G_TYPE_INT);
 	g_value_set_int (protocol, account->protocol);
 
-	username = gda_value_new_from_string (account->username, G_TYPE_STRING);
-	password = gda_value_new_from_string (account->password, G_TYPE_STRING);
+	if(account->protocol == MQTT || account->protocol == MQTT_SN) {
+		username = gda_value_new_from_string (account->username, G_TYPE_STRING);
+		password = gda_value_new_from_string (account->password, G_TYPE_STRING);
+	}
+	
 	client_id = gda_value_new_from_string (account->client_id, G_TYPE_STRING);
+
 	server_host = gda_value_new_from_string (account->server_host, G_TYPE_STRING);
 
 	server_port = gda_value_new (G_TYPE_INT);
@@ -126,9 +137,10 @@ void insert_data (GdaConnection *cnc, struct Account * account)
 	keep_alive = gda_value_new (G_TYPE_INT);
 	g_value_set_int (keep_alive, account->keep_alive);
 
-	will = gda_value_new_from_string (account->will, G_TYPE_STRING);
-	will_topic = gda_value_new_from_string (account->will_topic, G_TYPE_STRING);
-
+	if(account->protocol == MQTT || account->protocol == MQTT_SN) {
+		will = gda_value_new_from_string (account->will, G_TYPE_STRING);
+		will_topic = gda_value_new_from_string (account->will_topic, G_TYPE_STRING);
+	}
 	is_retain = gda_value_new (G_TYPE_INT);
 	g_value_set_int (is_retain, account->is_retain);
 	qos = gda_value_new (G_TYPE_INT);
@@ -258,7 +270,7 @@ static void remove_topic (GdaConnection *cnc, const char * topic_name)
 			g_error ("Could not get the default account of the 'account' table: %s\n",
 	                         error && error->message ? error->message : "No detail");
 
-	gda_data_model_dump (data_model, stdout);
+	//gda_data_model_dump (data_model, stdout);
 	gint account_id_int = g_value_get_int(gda_data_model_get_value_at(data_model, 0, 0, NULL));
 
 	gchar str [256] = {};
@@ -290,7 +302,7 @@ void insert_message_data (GdaConnection *cnc, const char * _content, const char 
 			g_error ("Could not get the default account of the 'account' table: %s\n",
 	                         error && error->message ? error->message : "No detail");
 
-	gda_data_model_dump (data_model, stdout);
+	//gda_data_model_dump (data_model, stdout);
 	gint account_id_int = g_value_get_int(gda_data_model_get_value_at(data_model, 0, 0, NULL));
 
 	GValue *topic_name, *content, *qos, *is_incoming, *is_retain, *is_dub, *account_id;
@@ -364,11 +376,10 @@ void run_sql_non_select (GdaConnection *cnc, const gchar *sql)
 
 	parser = g_object_get_data (G_OBJECT (cnc), "parser");
 	stmt = gda_sql_parser_parse_string (parser, sql, &remain, &error);
-	if (remain)
-		g_print ("REMAINS: %s\n", remain);
+//	if (remain)
+//		g_print ("REMAINS: %s\n", remain);
 
     nrows = gda_connection_statement_execute_non_select (cnc, stmt, NULL, NULL, &error);
-    //g_print ("ROWS: %i\n", nrows);
     if (nrows == -1)
     	g_error ("NON SELECT error: %s\n", error && error->message ? error->message : "no detail");
 	g_object_unref (stmt);
@@ -564,6 +575,7 @@ void save_message (const char * _content, const char * _topic_name, int _qos, in
 
 void set_account_default(int id) {
 	cnc = open_db_connection ();
+	set_default_all ();
 	set_default(id);
 
 }

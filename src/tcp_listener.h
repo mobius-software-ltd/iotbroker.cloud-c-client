@@ -8,7 +8,7 @@
 #ifndef TCP_LISTENER_H_
 #define TCP_LISTENER_H_
 
-typedef void (*ProcessResponseData)(char * data);
+typedef void (*ProcessResponseData)(char * data, int length);
 
 struct TcpListener {
 

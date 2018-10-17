@@ -124,7 +124,7 @@ void stop_message_timer() {
 
 void add_message_in_map(struct Message * message) {
 
-	unsigned short packet_id;
+	unsigned short packet_id = 0;
 	enum MessageType type = message->message_type;
 	switch(type) {
 

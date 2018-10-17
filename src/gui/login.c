@@ -13,6 +13,7 @@
 #include "../dal/cdal.h"
 #include "../mqtt/mqtt_client.h"
 #include "../mqttsn/mqtt_sn_client.h"
+#include "../coap/coap_client.h"
 #include "main_w.h"
 
 GtkWidget * mqttWidgets[27];
@@ -27,6 +28,7 @@ static GtkApplication* app;
 GtkWidget * login_window = NULL;
 
 void activate_login_window();
+
 static void connection_success(void);
 
 static GtkWidget * add_image(GtkWidget * label, GtkWidget * grid, gint x, gint y, char* image_name) {
@@ -68,6 +70,12 @@ static void print_coap_box() {
 	for (int i = 0; i < G_N_ELEMENTS(mqttWidgets); i++) {
 		gtk_widget_hide(mqttWidgets[i]);
 	}
+	gtk_widget_show(mqttWidgets[6]);
+	gtk_widget_show(mqttWidgets[7]);
+	gtk_widget_show(mqttWidgets[8]);
+	gtk_widget_show(mqttWidgets[12]);
+	gtk_widget_show(mqttWidgets[13]);
+	gtk_widget_show(mqttWidgets[14]);
 }
 
 static void show_warn_window(GtkWidget * curr_widget,const gchar * warning_string) {
@@ -137,7 +145,7 @@ static void login_button_handle(GtkWidget *widget, gpointer data) {
 	//clientID
 	curr_widget = gtk_grid_get_child_at(GTK_GRID(grid), 2, 6);
 	const gchar * client_id = gtk_entry_get_text(GTK_ENTRY(curr_widget));
-	if((strlen(client_id) == 0 || strcmp("Enter Client ID",client_id) ==0) && current_protocol != AMQP) {
+	if((strlen(client_id) == 0 || strcmp("Enter Client ID",client_id) ==0) && current_protocol != COAP) {
 		show_warn_window(curr_widget, "Please enter Client ID");
 		return;
 	}
@@ -224,7 +232,7 @@ static void login_button_handle(GtkWidget *widget, gpointer data) {
 		case MQTT : {
 			if (init_mqtt_client(account, mqtt_listener) != 0) {
 				//TODO WARNING WINDOW CONNECTION FAILED
-				printf("Connection failed!!!\n");
+				printf("MQTT client : connection failed!!!\n");
 				return;
 			}
 			break;
@@ -232,19 +240,27 @@ static void login_button_handle(GtkWidget *widget, gpointer data) {
 		case MQTT_SN : {
 			if (init_mqtt_sn_client(account, mqtt_listener) != 0) {
 				//TODO WARNING WINDOW CONNECTION FAILED
-				printf("Connection failed!!!\n");
+				printf("MQTT-SN client : connection failed!!!\n");
 				return;
 			}
 			break;
 		}
 		case COAP: {
-			printf("INIT COAP HAS NOT READY YET!!!\n");
-			return;
+			if (init_coap_client(account, mqtt_listener) != 0) {
+				printf("COAP client : connection failed!!!\n");
+			    return;
+			}
+			break;
 		}
 		case AMQP : {
 			printf("INIT AMQP HAS NOT READY YET!!!\n");
 			return;
 		}
+		default : {
+			printf("Unsupported protocol : %i \n", current_protocol);
+			exit(1);
+		}
+
 	}
 	mqtt_listener->send_connect(account);
 }
@@ -263,14 +279,15 @@ static void choose_box(GtkWidget *widget, GtkWidget *box) {
 		break;
 
 	case 2:
+		print_coap_box();
+		current_protocol = COAP;
+		break;
+
+	case 3:
 		print_amqp_box();
 		current_protocol = AMQP;
 		break;
 
-	case 3:
-		print_coap_box();
-		current_protocol = COAP;
-		break;
 	}
 }
 
@@ -459,7 +476,7 @@ void activate_login_window(GtkApplication* application) {
 		gtk_grid_attach(GTK_GRID(grid), label, 1, 17, 1, 1);
 		mqttWidgets[i++] = label;
 
-		spin = gtk_spin_button_new_with_range(0, 3, 1);
+		spin = gtk_spin_button_new_with_range(0, 2, 1);
 		gtk_grid_attach(GTK_GRID(grid), spin, 2, 17, 1, 1);
 		mqttWidgets[i++] = spin;
 

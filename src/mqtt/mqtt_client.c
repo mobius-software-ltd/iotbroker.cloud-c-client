@@ -31,7 +31,7 @@
 
 #define TCP_PROTOCOL 1
 
-void process_rx(char * data);
+void process_rx(char * data, int length);
 void send_ping(void);
 void send_connect(struct Account * account);
 void send_subscribe(const char * topic_name, int qos);
@@ -241,7 +241,7 @@ void send_ping() {
 	encode_and_fire(message);
 }
 
-void process_rx(char * data) {
+void process_rx(char * data, int length) {
 
 	struct Message * message = decode(data);
 

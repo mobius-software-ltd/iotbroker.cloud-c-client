@@ -32,7 +32,7 @@ static void onConnect(dyad_Event *e) {
 
 static void onData(dyad_Event *e) {
 
-  tcp_listener->prd_pt(e->data);
+  tcp_listener->prd_pt(e->data, e->size);
 
 }
 

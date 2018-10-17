@@ -272,7 +272,7 @@ void activate_main_window(GtkApplication* app, enum Protocol protocol, struct Mq
 	  label = gtk_label_new ("QoS");
 	  gtk_widget_set_halign (label, GTK_ALIGN_START);
 	  gtk_grid_attach (GTK_GRID (grid), label, 1, 1, 1, 1);
-	  gtk_grid_attach (GTK_GRID (grid), gtk_spin_button_new_with_range (0, 3, 1), 2, 1, 1, 1);
+	  gtk_grid_attach (GTK_GRID (grid), gtk_spin_button_new_with_range (0, 2, 1), 2, 1, 1, 1);
 
 
 	  button = gtk_button_new_with_label ("\nAdd\n");
@@ -317,14 +317,14 @@ void activate_main_window(GtkApplication* app, enum Protocol protocol, struct Mq
 	  gtk_entry_set_placeholder_text(GTK_ENTRY (entry), "Enter Topic");
 	  gtk_grid_attach (GTK_GRID (grid), entry, 2, 1, 1, 1);
 
-	  if(current_protocol==MQTT || current_protocol==MQTT_SN) {
+	  add_settings_image(label, grid, 0, 2);
+	  label = gtk_label_new ("QoS");
+	  gtk_widget_set_hexpand (label, TRUE);
+	  gtk_widget_set_halign (label, GTK_ALIGN_START);
+	  gtk_grid_attach (GTK_GRID (grid), label, 1, 2, 1, 1);
+	  gtk_grid_attach (GTK_GRID (grid), gtk_spin_button_new_with_range (0, 2, 1), 2, 2, 1, 1);
 
-		  add_settings_image(label, grid, 0, 2);
-		  label = gtk_label_new ("QoS");
-		  gtk_widget_set_hexpand (label, TRUE);
-		  gtk_widget_set_halign (label, GTK_ALIGN_START);
-		  gtk_grid_attach (GTK_GRID (grid), label, 1, 2, 1, 1);
-		  gtk_grid_attach (GTK_GRID (grid), gtk_spin_button_new_with_range (0, 3, 1), 2, 2, 1, 1);
+	  if(current_protocol==MQTT || current_protocol==MQTT_SN) {
 
 		  add_settings_image(label, grid, 0, 3);
 		  label = gtk_label_new ("Retain");
@@ -436,11 +436,15 @@ void send_message_button_handle (GtkWidget *widget, gpointer data) {
 	curr_widget = gtk_grid_get_child_at(GTK_GRID(grid), 2, 2);
 	int qos = gtk_spin_button_get_value(GTK_SPIN_BUTTON(curr_widget));
 
+	int retain = 0;
+	int dup = 0;
+	if(current_protocol==MQTT || current_protocol==MQTT_SN) {
 	curr_widget = gtk_grid_get_child_at(GTK_GRID(grid), 2, 3);
-	int retain = gtk_switch_get_state(GTK_SWITCH(curr_widget));
+	retain = gtk_switch_get_state(GTK_SWITCH(curr_widget));
 
 	curr_widget = gtk_grid_get_child_at(GTK_GRID(grid), 2, 4);
-	int dup = gtk_switch_get_state(GTK_SWITCH(curr_widget));
+	dup = gtk_switch_get_state(GTK_SWITCH(curr_widget));
+	}
 
 	mqtt_listener->send_message(content, topic_name, qos, retain, dup);
 
