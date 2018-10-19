@@ -137,7 +137,7 @@ void insert_data (GdaConnection *cnc, struct Account * account)
 	keep_alive = gda_value_new (G_TYPE_INT);
 	g_value_set_int (keep_alive, account->keep_alive);
 
-	if(account->protocol == MQTT || account->protocol == MQTT_SN) {
+	if((account->protocol == MQTT || account->protocol == MQTT_SN) &&  will != NULL && will_topic != NULL) {
 		will = gda_value_new_from_string (account->will, G_TYPE_STRING);
 		will_topic = gda_value_new_from_string (account->will_topic, G_TYPE_STRING);
 	}
@@ -600,6 +600,9 @@ struct MqttModel * get_messages_from_db() {
 
 struct MqttModel * get_accounts() {
 	cnc = open_db_connection ();
+	create_account_table_if_not_exist (cnc);
+	create_topic_table_if_not_exist (cnc);
+	create_message_table_if_not_exist (cnc);
 	set_default_all ();
 	return get_accounts_from_db(cnc);
 }

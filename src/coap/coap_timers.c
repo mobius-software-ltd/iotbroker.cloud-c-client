@@ -35,7 +35,6 @@ static void *coap_message_resend_task(void *arg)
     for(;;)
     {
         sleep(5);
-        printf("resend\n");
         const char *key;
         map_iter_t iter = map_iter(&m);
 
