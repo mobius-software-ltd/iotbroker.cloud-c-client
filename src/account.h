@@ -13,7 +13,7 @@ enum Protocol {
 	MQTT_SN = 1,
 	COAP = 2,
 	AMQP = 3,
-
+	WEBSOCKETS = 4
 };
 
 struct Account {

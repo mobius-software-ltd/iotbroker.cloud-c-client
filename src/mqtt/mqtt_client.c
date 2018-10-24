@@ -8,6 +8,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include "../net/tcp_client.h"
+#include "../net/lws_net_client.h"
 #include "../account.h"
 #include "../tcp_listener.h"
 #include "../mqtt_listener.h"
@@ -28,6 +29,7 @@
 #include "../mqtt/packets/unsuback.h"
 #include "../mqtt/packets/unsubscribe.h"
 #include "../mqtt/parser.h"
+#include "../ws/ws_parser.h"
 
 #define TCP_PROTOCOL 1
 
@@ -40,43 +42,47 @@ void send_disconnect(void);
 void send_publish(const char * content, const char * topic_name, int qos, int retain, int dup);
 
 static struct MqttListener * mqtt_listener = NULL;
-
+static struct Account * account = NULL;
 static int current_packet_number = 0;
 struct TcpListener * tcp_listener;
 unsigned int delay_in_seconds = 10;
 
-
-
 void encode_and_fire(struct Message * message) {
-	//encode
-	int length = get_length(message);
-	int total_length = length + 2;
-	char * buf = encode(message, length);
-	//send
-	write_to_tcp_connection(buf,total_length);
+
+	if(account->protocol == MQTT) {
+		int length = get_length(message);
+		int total_length = length + 2;
+		char * buf = encode(message, length);
+		write_to_tcp_connection(buf,total_length);
+	} else {
+		char * s = ws_encode(message);
+		fire(s);
+	}
 }
 
 int init_mqtt_client(struct Account * acc, struct MqttListener * listener) {
 
+	account = acc;
 	mqtt_listener = listener;
 	mqtt_listener->send_connect = send_connect;
 	mqtt_listener->send_sub = send_subscribe;
 	mqtt_listener->send_disconnect = send_disconnect;
 	mqtt_listener->send_message = send_publish;
 	mqtt_listener->send_unsubscribe = send_unsubscribe;
-
-	const char * host = acc->server_host;
-	int port = acc->server_port;
 	tcp_listener = malloc (sizeof (struct TcpListener));
 	tcp_listener->prd_pt = process_rx;
-	int isSuccessful = open_tcp_connection(host, port, TCP_PROTOCOL, tcp_listener);
-	if (isSuccessful >= 0) {
-		printf("result of successful connection :  %i \n", isSuccessful);
-	}
-	else {
-		printf("result of unsuccessful connection : %i \n", isSuccessful);
-	}
-	return isSuccessful;
+
+	int is_successful = 0;
+	if(acc->protocol == MQTT)
+		is_successful = open_tcp_connection(acc->server_host, acc->server_port, TCP_PROTOCOL, tcp_listener);
+	else
+		is_successful = open_lws_net_connection(acc->server_host, acc->server_port, 0, tcp_listener);
+
+	if (is_successful >= 0)
+		printf("MQTT client successfully connected with transport %s\n", acc->protocol == MQTT ? "TCP" : "WEBSOCKETS" );
+	else
+		printf("MQTT client NOT connected with transport %s\n", acc->protocol == MQTT ? "TCP" : "WEBSOCKETS" );
+	return is_successful;
 
 }
 
@@ -163,7 +169,7 @@ void send_publish(const char * content, const char * topic_name, int qos, int re
 	else
 		publish->packet_id = 0;
 	struct Message * message = malloc (sizeof (struct Message));
-	message->message_type = 3;
+	message->message_type = PUBLISH;
 	message->packet = publish;
 
 	encode_and_fire(message);
@@ -243,7 +249,11 @@ void send_ping() {
 
 void process_rx(char * data, int length) {
 
-	struct Message * message = decode(data);
+	struct Message * message = NULL;
+	if(account->protocol == MQTT)
+		message = decode(data);
+	else
+		message = ws_decode(data);
 
 	enum MessageType type = message->message_type;
 	switch(type) {
@@ -285,8 +295,8 @@ void process_rx(char * data, int length) {
 			}
 			struct Publish * p = (struct Publish*) message->packet;
 			//content, topic_name, qos, retain, dup, 0
-			save_message(p->content, p->topic.topic_name, p->topic.qos, p->retain, p->dup, p->is_incoming);
-			update_messages_window (p->content, p->topic.topic_name, p->topic.qos, p->retain, p->dup, p->is_incoming);
+			save_message(p->content, p->topic.topic_name, p->topic.qos, p->retain, p->dup, 0);
+			update_messages_window (p->content, p->topic.topic_name, p->topic.qos, p->retain, p->dup, 0);
 			remove_message_from_map(pa->packet_id);
 			break;
 		}
@@ -308,8 +318,8 @@ void process_rx(char * data, int length) {
 				break;
 			}
 			struct Publish * p = (struct Publish*) message->packet;
-			save_message(p->content, p->topic.topic_name, p->topic.qos, p->retain, p->dup, p->is_incoming);
-			update_messages_window (p->content, p->topic.topic_name, p->topic.qos, p->retain, p->dup, p->is_incoming);
+			save_message(p->content, p->topic.topic_name, p->topic.qos, p->retain, p->dup, 0);
+			update_messages_window (p->content, p->topic.topic_name, p->topic.qos, p->retain, p->dup, 0);
 			remove_message_from_map(pc->packet_id);
 			break;
 		}

@@ -101,6 +101,7 @@ void activate_main_window_default (GtkButton * button, struct Account * _account
 			//TODO WARNING WINDOW CONNECTION FAILED
 			return;
 		}
+
 	} else if(current_protocol == COAP) {
 		if (init_coap_client(account, mqtt_listener) != 0) {
 			printf("COAP client: CONNECTION FAILED!!!\n");
@@ -115,12 +116,17 @@ void activate_main_window_default (GtkButton * button, struct Account * _account
 //			//TODO WARNING WINDOW CONNECTION FAILED
 //			return;
 //		}
+	} else if(current_protocol == WEBSOCKETS) {
+		if (init_mqtt_client(account, mqtt_listener) != 0) {
+			printf("MQTT-WS client: CONNECTION FAILED!!!\n");
+			//TODO WARNING WINDOW CONNECTION FAILED
+			return;
+		}
 	} else {
 		printf("Error: unsupported protocol : %i \n", current_protocol);
 		exit(1);
 	}
 	mqtt_listener->send_connect(account);
-
 }
 
 void activate_loading_window (GtkApplication* _app, gpointer user_data) {
@@ -182,6 +188,7 @@ static void show_account_list_window(struct MqttModel * model) {
 	GtkWidget * button = NULL;
 	char * padding = " client account details                            \n";
 	char * sn_padding = " client account details                       \n";
+	char * ws_padding = " client account details            \n";
 
 	for(int i = 0; i < model -> account_size; i++) {
 		char str [256] = {};
@@ -195,21 +202,22 @@ static void show_account_list_window(struct MqttModel * model) {
 		case COAP: protocol_string = "COAP";
 		break;
 		case AMQP: protocol_string = "AMQP";
+		break;
+		case WEBSOCKETS: protocol_string = "WEBSOCKETS";
+		break;
 		}
 		strcat(str, protocol_string);
 		if(protocol == MQTT_SN) {
 			strcat(str, sn_padding);
+		} else if (protocol == WEBSOCKETS) {
+			strcat(str, ws_padding);
 		} else {
 			strcat(str, padding);
 		}
 
-		if(model-> account -> username != NULL) {
-			strcat(str, model-> account -> username);
-			strcat(str, "\n");
-		} else {
-			strcat(str, model-> account -> client_id);
-			strcat(str, "\n");
-		}
+		strcat(str, model-> account -> client_id);
+		strcat(str, "\n");
+
 		strcat(str, model-> account -> server_host);
 		strcat(str, ":");
 		char port_string [256];

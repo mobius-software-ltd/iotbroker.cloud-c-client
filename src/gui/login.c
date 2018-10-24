@@ -20,7 +20,7 @@ GtkWidget * mqttWidgets[27];
 //GtkWidget * box = NULL;
 enum Protocol current_protocol = MQTT;
 const int nWidget[] = { 0, 1, 2, 3, 4, 5 };
-static const char *PROTOCOLS_STRING[] = {"MQTT", "MQTT-SN", "COAP", "AMQP"};
+static const char *PROTOCOLS_STRING[] = {"MQTT", "MQTT-SN", "COAP", "AMQP", "WEBSOCKETS"};
 
 struct MqttListener * mqtt_listener;
 static struct Account * account;
@@ -114,12 +114,15 @@ static void login_button_handle(GtkWidget *widget, gpointer data) {
 		break;
 	case 3:
 		account->protocol = AMQP;
+		break;
+	case 4:
+		account->protocol = WEBSOCKETS;
 	}
 	//username
 	curr_widget = gtk_grid_get_child_at(GTK_GRID(grid), 2, 4);
 	const gchar * username = gtk_entry_get_text(GTK_ENTRY(curr_widget));
 	if(strlen(username) == 0 || strcmp("Enter User Name",username) ==0) {
-		if(current_protocol == MQTT) {
+		if(current_protocol == MQTT || current_protocol == WEBSOCKETS) {
 			show_warn_window(curr_widget, "Please enter user name");
 			return;
 		} else {
@@ -132,7 +135,7 @@ static void login_button_handle(GtkWidget *widget, gpointer data) {
 	curr_widget = gtk_grid_get_child_at(GTK_GRID(grid), 2, 5);
 	const gchar * password = gtk_entry_get_text(GTK_ENTRY(curr_widget));
 	if(strlen(password) == 0 || strcmp("Enter Password",password) ==0) {
-		if( current_protocol == MQTT) {
+		if( current_protocol == MQTT || current_protocol == WEBSOCKETS) {
 			show_warn_window(curr_widget, "Please enter password");
 			return;
 		} else {
@@ -183,7 +186,7 @@ static void login_button_handle(GtkWidget *widget, gpointer data) {
 	//keepalive
 	curr_widget = gtk_grid_get_child_at(GTK_GRID(grid), 2, 13);
 	const gchar * keepalive_string = gtk_entry_get_text(GTK_ENTRY(curr_widget));
-	if((strlen(keepalive_string) == 0 || strcmp("Enter Keepalive",keepalive_string) ==0) && (current_protocol == MQTT || current_protocol == MQTT_SN)) {
+	if((strlen(keepalive_string) == 0 || strcmp("Enter Keepalive",keepalive_string) ==0) && (current_protocol == MQTT || current_protocol == MQTT_SN || current_protocol == WEBSOCKETS)) {
 		show_warn_window(curr_widget, "Please enter keepalive");
 		return;
 	} else {
@@ -250,19 +253,27 @@ static void login_button_handle(GtkWidget *widget, gpointer data) {
 				printf("COAP client : connection failed!!!\n");
 			    return;
 			}
+
 			break;
 		}
 		case AMQP : {
 			printf("INIT AMQP HAS NOT READY YET!!!\n");
 			return;
 		}
+		case WEBSOCKETS : {
+			if (init_mqtt_client(account, mqtt_listener) != 0) {
+				//TODO WARNING WINDOW CONNECTION FAILED
+				printf("MQTT-WS client : connection failed!!!\n");
+				return;
+			}
+			break;
+		}
 		default : {
 			printf("Unsupported protocol : %i \n", current_protocol);
 			exit(1);
 		}
-
+		mqtt_listener->send_connect(account);
 	}
-	mqtt_listener->send_connect(account);
 }
 
 static void choose_box(GtkWidget *widget, GtkWidget *box) {
@@ -286,6 +297,10 @@ static void choose_box(GtkWidget *widget, GtkWidget *box) {
 	case 3:
 		print_amqp_box();
 		current_protocol = AMQP;
+		break;
+	case 4:
+		activate_login_window(NULL);
+		current_protocol = WEBSOCKETS;
 		break;
 
 	}

@@ -324,7 +324,7 @@ void activate_main_window(GtkApplication* app, enum Protocol protocol, struct Mq
 	  gtk_grid_attach (GTK_GRID (grid), label, 1, 2, 1, 1);
 	  gtk_grid_attach (GTK_GRID (grid), gtk_spin_button_new_with_range (0, 2, 1), 2, 2, 1, 1);
 
-	  if(current_protocol==MQTT || current_protocol==MQTT_SN) {
+	  if(current_protocol==MQTT || current_protocol==MQTT_SN || current_protocol==WEBSOCKETS) {
 
 		  add_settings_image(label, grid, 0, 3);
 		  label = gtk_label_new ("Retain");
