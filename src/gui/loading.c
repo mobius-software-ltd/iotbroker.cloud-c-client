@@ -15,6 +15,7 @@
 #include "../mqtt/mqtt_client.h"
 #include "../mqttsn/mqtt_sn_client.h"
 #include "../coap/coap_client.h"
+#include "../amqp/amqp_client.h"
 #include "../mqtt_listener.h"
 #include "main_w.h"
 #include "gui_color.h"
@@ -109,13 +110,11 @@ void activate_main_window_default (GtkButton * button, struct Account * _account
 			return;
 		}
 	} else if(current_protocol == AMQP) {
-		printf("Error: unsupported protocol : %i \n", current_protocol);
-		return;
-//		if (init_coap_client(account, mqtt_listener) != 0) {
-//			printf("AMQP client: CONNECTION FAILED!!!\n");
-//			//TODO WARNING WINDOW CONNECTION FAILED
-//			return;
-//		}
+		if (init_amqp_client(account, mqtt_listener) != 0) {
+			printf("AMQP client: CONNECTION FAILED!!!\n");
+			//TODO WARNING WINDOW CONNECTION FAILED
+			return;
+		}
 	} else if(current_protocol == WEBSOCKETS) {
 		if (init_mqtt_client(account, mqtt_listener) != 0) {
 			printf("MQTT-WS client: CONNECTION FAILED!!!\n");

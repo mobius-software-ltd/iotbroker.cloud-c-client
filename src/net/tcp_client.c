@@ -9,8 +9,10 @@
 #include <pthread.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 
 #include "../tcp_listener.h"
+#include "../helpers.h"
 
 static dyad_Stream *s;
 static pthread_t worker;
@@ -32,8 +34,7 @@ static void onConnect(dyad_Event *e) {
 
 static void onData(dyad_Event *e) {
 
-  tcp_listener->prd_pt(e->data, e->size);
-
+	tcp_listener->prd_pt(e->data, e->size);
 }
 
 int open_tcp_connection(const char * host, int port, int sock_type, struct TcpListener * client) {

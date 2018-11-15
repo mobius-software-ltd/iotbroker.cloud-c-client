@@ -14,6 +14,7 @@
 #include "../mqtt/mqtt_client.h"
 #include "../mqttsn/mqtt_sn_client.h"
 #include "../coap/coap_client.h"
+#include "../amqp/amqp_client.h"
 #include "main_w.h"
 
 GtkWidget * mqttWidgets[27];
@@ -257,8 +258,12 @@ static void login_button_handle(GtkWidget *widget, gpointer data) {
 			break;
 		}
 		case AMQP : {
-			printf("INIT AMQP HAS NOT READY YET!!!\n");
-			return;
+			if (init_amqp_client(account, mqtt_listener) != 0) {
+				printf("AMQP client : connection failed!!!\n");
+				return;
+			}
+
+			break;
 		}
 		case WEBSOCKETS : {
 			if (init_mqtt_client(account, mqtt_listener) != 0) {

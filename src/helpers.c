@@ -67,6 +67,29 @@ unsigned short get_short(char* array, int offset) {
 	return (short) (((short) array[offset]) << 8) | array[offset + 1];
 }
 
+int get_int(char* array, int offset) {
+	return array[offset] << 24 | (array[offset+1] << 16) | (array[offset+2] << 8) | (array[offset+3]);
+}
+
+long get_long(char* array, int offset) {
+	long * a;
+	memcpy(&a, &array[offset], sizeof(long));
+	return *a;
+}
+
+
+double get_double (char* array, int offset) {
+	double * a;
+	memcpy(&a, &array[offset], sizeof(double));
+	return *a;
+}
+
+float get_float (char* array, int offset) {
+	double * a;
+	memcpy(&a, &array[offset], sizeof(float));
+	return *a;
+}
+
 int remaining_length(int length) {
 
 	if (length <= 127)
@@ -99,4 +122,25 @@ int add_packet_length(int length, char * remaining_length) {
 
 	return pos;
 
+}
+
+void reverse (unsigned char * a, int len) {
+	int i = len - 1;
+	int  j = 0;
+	  while(i > j)
+	  {
+	    char temp = a[i];
+	    a[i] = a[j];
+	    a[j] = temp;
+	    i--;
+	    j++;
+	  }
+//	  for(int o = 0; o < len; o++)
+//		  printf("<<<%x>>>", a[o]);
+//	  unsigned char * b = malloc(len * sizeof(char));
+//	  for(int k = 0; k < len; k++)
+//		b[k] = a[k];
+//	  free(a);
+//
+//	  return b;
 }
