@@ -56,7 +56,7 @@ static GtkWidget * add_image(GtkWidget * label, GtkWidget * grid, gint x, gint y
 
 void warning_window_handler (GtkWidget *widget, GdkEventExpose *event, gpointer data)
 {
-	gtk_widget_set_sensitive(GTK_WIDGET (data), TRUE);
+	//gtk_widget_set_sensitive(GTK_WIDGET (data), TRUE);
 }
 
 static void print_mqtt_sn_box() {
@@ -95,7 +95,7 @@ static void print_coap_box() {
 static void show_warn_window(GtkWidget * curr_widget,const gchar * warning_string) {
 	GtkWidget *warning_window;
 	warning_window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
-	gtk_window_set_title (GTK_WINDOW (warning_window), "Add topic");
+	gtk_window_set_title (GTK_WINDOW (warning_window), "Warning");
 	gtk_window_set_resizable (GTK_WINDOW (warning_window), FALSE);
 	gtk_widget_set_size_request (warning_window, 280, 280);
 	gtk_container_add(GTK_CONTAINER(warning_window), gtk_label_new(warning_string));
@@ -103,7 +103,7 @@ static void show_warn_window(GtkWidget * curr_widget,const gchar * warning_strin
 	parent = gtk_widget_get_parent(parent);
 	parent = gtk_widget_get_parent(parent);
 	parent = gtk_widget_get_parent(parent);
-	gtk_widget_set_sensitive(GTK_WIDGET(parent), FALSE);
+	//gtk_widget_set_sensitive(GTK_WIDGET(parent), FALSE);
 	g_signal_connect(G_OBJECT(warning_window), "delete_event", G_CALLBACK(warning_window_handler), parent);
 	gtk_widget_show_all(warning_window);
 }
@@ -189,8 +189,10 @@ static void login_button_handle(GtkWidget *widget, gpointer data) {
 		return;
 	} else {
 		int port = atoi(server_port);
-		if(port < 1 || port > G_MAXUINT16)
+		if(port < 1 || port > G_MAXUINT16) {
 			show_warn_window(curr_widget, "Port must be > 0 and < 65535");
+			return;
+		}
 		else
 			account->server_port = port;
 	}
@@ -205,8 +207,10 @@ static void login_button_handle(GtkWidget *widget, gpointer data) {
 		return;
 	} else {
 		int keepalive = atoi(keepalive_string);
-		if(keepalive < 0)
-			show_warn_window(curr_widget, "keepalive must be >= 0");
+		if(keepalive < 0 || keepalive > G_MAXUINT16) {
+			show_warn_window(curr_widget, "keepalive must be >= 0 and < 65535");
+			return;
+		}
 		else
 			account->keep_alive = keepalive;
 	}
