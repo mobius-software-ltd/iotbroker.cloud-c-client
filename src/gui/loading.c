@@ -198,9 +198,9 @@ static void show_account_list_window(struct MqttModel * model) {
 	gtk_box_pack_start (GTK_BOX(box), label, FALSE, FALSE, 0);
 
 	GtkWidget * button = NULL;
-	char * padding = " client account details                            \n";
-	char * sn_padding = " client account details                       \n";
-	char * ws_padding = " client account details            \n";
+	char * padding = "                                                  \n";
+	char * sn_padding = "                                              \n";
+	char * ws_padding = "                                   \n";
 
 	for(int i = 0; i < model -> account_size; i++) {
 		char str [256] = {};

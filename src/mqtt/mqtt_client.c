@@ -52,6 +52,7 @@ void send_subscribe(const char * topic_name, int qos);
 void send_unsubscribe(const char * topic_name);
 void send_disconnect(void);
 void send_publish(const char * content, const char * topic_name, int qos, int retain, int dup);
+void mqtt_data_received(char * buf, int readable_bytes);
 
 static struct MqttListener * mqtt_listener = NULL;
 static struct Account * account = NULL;
@@ -82,7 +83,7 @@ int init_mqtt_client(struct Account * acc, struct MqttListener * listener) {
 	mqtt_listener->send_message = send_publish;
 	mqtt_listener->send_unsubscribe = send_unsubscribe;
 	tcp_listener = malloc (sizeof (struct TcpListener));
-	tcp_listener->prd_pt = process_rx;
+	tcp_listener->prd_pt = mqtt_data_received;
 
 	int is_successful = 0;
 	if(acc->protocol == MQTT)
@@ -259,6 +260,22 @@ void send_ping() {
 	encode_and_fire(message);
 }
 
+void mqtt_data_received(char * buf, int readable_bytes) {
+	int i = 0;
+	int length = buf[1]+2;
+	if(length < readable_bytes) {
+		do {
+			char * next_bytes = malloc(length * sizeof(char));
+			memcpy(next_bytes,&(buf[i]),length);
+			process_rx(next_bytes, length);
+			i += length;
+			length = buf[i+1] + 2;
+			} while (i < readable_bytes);
+	} else {
+		process_rx(buf, readable_bytes);
+	}
+}
+
 void process_rx(char * data, int length) {
 
 	struct Message * message = NULL;
@@ -344,6 +361,11 @@ void process_rx(char * data, int length) {
 			}
 			struct Subscribe * s = (struct Subscribe*) message->packet;
 			if(sa->codes[0] != FAILURE) {//currently suports 1 topic per subscribe
+
+				//remove if already present
+				remove_topic_from_list_box(s->topics->topic_name);
+				remove_topic_from_db(s->topics->topic_name);
+				//add topic to DB and GUI
 				add_topics_to_list_box(s->topics->topic_name, s->topics->qos);
 				save_topic_to_db(s->topics->topic_name, s->topics->qos);
 				remove_message_from_map(sa->packet_id);

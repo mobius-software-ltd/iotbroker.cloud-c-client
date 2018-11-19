@@ -218,25 +218,29 @@ char * encode(struct Message * message, int length) {
 	case PUBACK: {
 		struct Puback pa = *(struct Puback*) message->packet;
 		buf[i++] = message->message_type << 4;
-		buf[i] = add_short(&buf[i], pa.packet_id);
+		buf[i++] = length;
+		add_short(&buf[i], pa.packet_id);
 		break;
 	}
 	case PUBREC: {
 		struct Pubrec pr = *(struct Pubrec*) message->packet;
 		buf[i++] = message->message_type << 4;
-		buf[i] = add_short(&buf[i], pr.packet_id);
+		buf[i++] = length;
+		add_short(&buf[i], pr.packet_id);
 		break;
 	}
 	case PUBREL: {
 		struct Pubrel pl = *(struct Pubrel*) message->packet;
 		buf[i++] = (message->message_type << 4) | 0x2;
-		buf[i] = add_short(&buf[i], pl.packet_id);
+		buf[i++] = length;
+		add_short(&buf[i], pl.packet_id);
 		break;
 	}
 	case PUBCOMP: {
 		struct Pubcomp pc = *(struct Pubcomp*) message->packet;
 		buf[i++] = message->message_type << 4;
-		buf[i] = add_short(&buf[i], pc.packet_id);
+		buf[i++] = length;
+		add_short(&buf[i], pc.packet_id);
 		break;
 	}
 	case SUBSCRIBE: {
