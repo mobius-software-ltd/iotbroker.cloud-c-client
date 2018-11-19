@@ -290,8 +290,8 @@ static void login_button_handle(GtkWidget *widget, gpointer data) {
 			printf("Unsupported protocol : %i \n", current_protocol);
 			exit(1);
 		}
-		mqtt_listener->send_connect(account);
 	}
+	mqtt_listener->send_connect(account);
 }
 
 static void choose_box(GtkWidget *widget, GtkWidget *box) {
