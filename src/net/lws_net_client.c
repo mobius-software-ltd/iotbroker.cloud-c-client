@@ -22,8 +22,11 @@
 #include <signal.h>
 #include <jansson.h>
 #include <pthread.h>
+#include <unistd.h>
 #include "../tcp_listener.h"
+#include "../account.h"
 
+static char file_name_template [] = "/tmp/c_client_temp.XXXXXX";
 int interrupted;
 struct lws_context *context;
 static pthread_t worker;
@@ -31,6 +34,13 @@ struct TcpListener * tcp_listener;
 struct per_vhost_data__minimal *vhd;
 static const char * peer_host;
 static int peer_port;
+static int is_secure;
+static char * filename = NULL;
+
+static enum Protocol current_protocol;
+
+static unsigned char * pending_data;
+static int pending_len;
 
 struct per_vhost_data__minimal {
 	struct lws_context *context;
@@ -45,15 +55,19 @@ struct per_vhost_data__minimal {
 	char established;
 };
 
-void * net_service_task(void *thread_id)
+static void * net_service_task(void *thread_id)
 {
 	int n = 0;
 	while (n >= 0 && !interrupted) {
 		n = lws_service(context, 1000);
 	}
-		lws_context_destroy(context);
-		lwsl_user("Completed\n");
-		pthread_exit(0);
+	lws_context_destroy(context);
+	printf("Net service stopped\n");
+	//pthread_cancel(worker);
+	vhd = NULL;
+	context = NULL;
+	interrupted = 0;
+	return 0;
 }
 
 static int connect_ws_client(struct per_vhost_data__minimal *vhd)
@@ -61,10 +75,18 @@ static int connect_ws_client(struct per_vhost_data__minimal *vhd)
 	vhd->i.context = vhd->context;
 	vhd->i.port = peer_port;
 	vhd->i.address = peer_host;
-	vhd->i.path = "/ws";
+	if(current_protocol != WEBSOCKETS)
+		vhd->i.path = "/";
+	else
+		vhd->i.path = "/ws";
 	vhd->i.host = vhd->i.address;
 	vhd->i.origin = vhd->i.address;
-	vhd->i.ssl_connection = 0;
+	if(is_secure)
+		vhd->i.ssl_connection = LCCSCF_USE_SSL;
+	else
+		vhd->i.ssl_connection = 0;
+	if(current_protocol != WEBSOCKETS)
+		vhd->i.method = "RAW";
 
 	vhd->i.protocol = "lws-minimal-broker";
 	vhd->i.pwsi = &vhd->client_wsi;
@@ -108,12 +130,30 @@ static int callback_minimal_broker(struct lws *wsi, enum lws_callback_reasons re
 		tcp_listener->prd_pt((char *)in, len);
 
 		break;
+	case LWS_CALLBACK_RAW_RX: {
+		tcp_listener->prd_pt((char *)in, len);
+	}
+		break;
 
+	case LWS_CALLBACK_CLIENT_WRITEABLE: {
+		int s_len = strlen((char *)pending_data);
+		lws_write(vhd->client_wsi, pending_data, s_len, LWS_WRITE_TEXT);
+	}
+	break;
+	case LWS_CALLBACK_RAW_WRITEABLE: {
+		lws_write(vhd->client_wsi, pending_data, pending_len, LWS_WRITE_RAW);
+	}
+	break;
+
+	case LWS_CALLBACK_RAW_ADOPT: {
+		vhd->established = 1;
+	}
+	break;
 	default:
 		break;
 	}
 
-	return lws_callback_http_dummy(wsi, reason, user, in, len);
+	return 0;
 }
 
 static const struct lws_protocols protocols[] = {
@@ -131,9 +171,12 @@ static void sigint_handler(int sig)
 	interrupted = 1;
 }
 
-int open_lws_net_connection(const char * host, int port, int sock_type, struct TcpListener * client) {
+int open_lws_net_connection(const char * host, int port, struct TcpListener * client,
+		int _is_secure, const char * cert, const char * cert_password, enum Protocol protocol) {
 
+	current_protocol = protocol;
 	tcp_listener = client;
+	is_secure = _is_secure;
 	struct lws_context_creation_info info;
 	peer_host = host;
 	peer_port = port;
@@ -143,6 +186,33 @@ int open_lws_net_connection(const char * host, int port, int sock_type, struct T
 	memset(&info, 0, sizeof info); /* otherwise uninitialized garbage */
 	info.port = CONTEXT_PORT_NO_LISTEN; /* we do not run any server */
 	info.protocols = protocols;
+	if(is_secure) {
+		info.options = LWS_SERVER_OPTION_DO_SSL_GLOBAL_INIT;
+		if(cert != NULL) {
+			filename = malloc((strlen(file_name_template) + 1) * sizeof(char));
+			strcpy(filename, file_name_template);
+			int fd = mkstemp(filename);
+			if (fd == -1) {
+				printf("cannot open file!!!\n");
+				return -1;
+			}
+			int size_data = write(fd, cert, strlen(cert));
+			if(size_data <= 0) {
+				printf("Error : Cannot write certificate in file!!!\n");
+				close(fd);
+				unlink(filename);
+				return -1;
+			}
+			close(fd);
+			//we can add here protocol name MQTT,COAP, etc.
+			info.alpn = "";
+			info.client_ssl_private_key_filepath = filename;
+			info.client_ssl_cert_filepath = filename;
+			info.client_ssl_private_key_password = cert_password;
+		}
+		else
+			printf("Certificate is NULL\n");
+	}
 
 	context = lws_create_context(&info);
 	if (!context) {
@@ -155,17 +225,37 @@ int open_lws_net_connection(const char * host, int port, int sock_type, struct T
 		printf("ERROR; return code from pthread_create() is %d\n", rc);
 		return -1;
 	 }
-	sleep(1);
 
-	return 0;
+	int counter = 0;
+	while(vhd == NULL ||( !vhd->established && counter < 15)) {
+		counter++;
+		usleep(200*1000);
+	}
+
+	if(filename!= NULL)
+		unlink(filename);
+
+	if(vhd->established)
+		return 0;
+	else
+		return -1;
 }
 
 void fire(char * s) {
 
-	int s_len = strlen(s)+1;
-	uint8_t message[LWS_PRE + s_len];
-	int n = 0;
-	n = lws_snprintf((char *)message + LWS_PRE, s_len, s);
-	lws_write(vhd->client_wsi, message + LWS_PRE, n, LWS_WRITE_TEXT);
+	pending_data = (unsigned char*) s;
+	lws_callback_on_writable(vhd->client_wsi);
 
+}
+
+void raw_fire(char * s, int len) {
+
+	pending_data = (unsigned char*) s;
+	pending_len = len;
+	lws_callback_on_writable(vhd->client_wsi);
+
+}
+
+void lws_close_tcp_connection() {
+	interrupted = 1;
 }

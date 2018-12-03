@@ -22,8 +22,11 @@
 #define SRC_NET_LWS_NET_CLIENT_H_
 
 #include "../tcp_listener.h"
+#include "../account.h"
 
-int open_lws_net_connection(const char * host, int port, int sock_type, struct TcpListener * client);
+int open_lws_net_connection(const char * host, int port, struct TcpListener * client, int _is_secure, const char * cert, const char * cert_password, enum Protocol protocol);
 void fire(char * s);
+void raw_fire(unsigned char * s, int len);
+void lws_close_tcp_connection(void);
 
 #endif /* SRC_NET_LWS_NET_CLIENT_H_ */

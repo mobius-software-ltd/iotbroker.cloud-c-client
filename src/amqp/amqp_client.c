@@ -26,7 +26,7 @@
 #include "../common_topic.h"
 #include "../mqtt_listener.h"
 #include "../tcp_listener.h"
-#include "../net/tcp_client.h"
+#include "../net/lws_net_client.h"
 #include "../helpers.h"
 #include "amqp_parser.h"
 #include "amqp_timers.h"
@@ -48,7 +48,6 @@
 #include "sections/amqp_data.h"
 #include "avps/outcome_code.h"
 
-#define TCP_PROTOCOL 1
 
 static struct TcpListener * tcp_listener = NULL;
 static struct MqttListener * mqtt_listener = NULL;
@@ -76,7 +75,7 @@ void amqp_encode_and_fire(struct AmqpHeader * header) {
 	int total_length = 0;
 	char * buf = amqp_encode(header, &total_length);
 	//send
-	write_to_tcp_connection(buf,total_length);
+	raw_fire(buf,total_length);
 }
 
 
@@ -93,15 +92,15 @@ int init_amqp_client(struct Account * acc, struct MqttListener * listener) {
 
 	tcp_listener = malloc (sizeof (struct TcpListener));
 	tcp_listener->prd_pt = amqp_data_received;
-	int isSuccessful = open_tcp_connection(acc->server_host, acc->server_port, TCP_PROTOCOL, tcp_listener);
-	if (isSuccessful >= 0) {
-		printf("result of successful connection :  %i \n", isSuccessful);
+	int is_successful = open_lws_net_connection(acc->server_host, acc->server_port, tcp_listener, acc->is_secure, acc->certificate, acc->certificate_password, acc->protocol);
+	if (is_successful >= 0) {
+		printf("AMQP client successfully connected :  %i \n", is_successful);
 	}
 	else
 	{
-		printf("result of unsuccessful connection : %i \n", isSuccessful);
+		printf("AMQP client NOT connected : %i \n", is_successful);
 	}
-	return isSuccessful;
+	return is_successful;
 
 }
 
@@ -694,6 +693,7 @@ void process_amqp_rx(char * data, int readable_bytes) {
 			break;
 		}
 		case CLOSE: {
+			lws_close_tcp_connection();
 			break;
 		}
 		case MECHANISMS: {

@@ -33,11 +33,12 @@ struct TcpListener * tcp_listener;
 
 void *update_dyad(void *threadid)
 {
-   while (dyad_getStreamCount() > 0) {
-     dyad_update();
-   }
-   dyad_shutdown();
-   pthread_exit(0);
+	while (dyad_getStreamCount() > 0) {
+		dyad_update();
+	}
+	dyad_shutdown();
+	printf("Net service stopped.\n");
+	return 0;
 }
 
 
@@ -50,7 +51,7 @@ static void onData(dyad_Event *e) {
 	tcp_listener->prd_pt(e->data, e->size);
 }
 
-int open_tcp_connection(const char * host, int port, int sock_type, struct TcpListener * client) {
+int init_net_service(const char * host, int port, int sock_type, struct TcpListener * client) {
 
 	tcp_listener = client;
 	dyad_init();
@@ -70,11 +71,11 @@ int open_tcp_connection(const char * host, int port, int sock_type, struct TcpLi
 	return result;
 }
 
-void close_tcp_connection() {
+void stop_net_service() {
 	dyad_shutdown();
 }
 
-void write_to_tcp_connection (void * data, int size) {
+void write_to_net (void * data, int size) {
 
 	dyad_write(s, data, size);
 

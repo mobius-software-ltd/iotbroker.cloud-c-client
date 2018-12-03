@@ -97,7 +97,11 @@ void create_account_table_if_not_exist (GdaConnection *cnc)
     		"will_topic text,"
     		"is_retain integer,"
     		"qos integer,"
+    		"is_secure integer,"
+    		"certificate text,"
+    		"certificate_password text,"
             "is_default integer not null)");
+
 }
 
 void create_topic_table_if_not_exist (GdaConnection *cnc)
@@ -135,13 +139,16 @@ void insert_data (GdaConnection *cnc, struct Account * account)
 	GValue *will = NULL;
 	GValue *will_topic = NULL;
 	GValue *client_id = NULL;
+	GValue *is_secure = NULL;
+	GValue *certificate = NULL;
+	GValue *certificate_password = NULL;
 
 
 
 	protocol = gda_value_new (G_TYPE_INT);
 	g_value_set_int (protocol, account->protocol);
 
-	if(account->protocol == MQTT || account->protocol == MQTT_SN) {
+	if(account->protocol == MQTT || account->protocol == WEBSOCKETS || account->protocol == AMQP) {
 		username = gda_value_new_from_string (account->username, G_TYPE_STRING);
 		password = gda_value_new_from_string (account->password, G_TYPE_STRING);
 	}
@@ -157,7 +164,7 @@ void insert_data (GdaConnection *cnc, struct Account * account)
 	keep_alive = gda_value_new (G_TYPE_INT);
 	g_value_set_int (keep_alive, account->keep_alive);
 
-	if((account->protocol == MQTT || account->protocol == MQTT_SN) &&  will != NULL && will_topic != NULL) {
+	if((account->protocol == MQTT || account->protocol == MQTT_SN) &&  account->will != NULL && account->will_topic != NULL) {
 		will = gda_value_new_from_string (account->will, G_TYPE_STRING);
 		will_topic = gda_value_new_from_string (account->will_topic, G_TYPE_STRING);
 	}
@@ -165,6 +172,15 @@ void insert_data (GdaConnection *cnc, struct Account * account)
 	g_value_set_int (is_retain, account->is_retain);
 	qos = gda_value_new (G_TYPE_INT);
 	g_value_set_int (qos, account->qos);
+
+	is_secure = gda_value_new (G_TYPE_INT);
+	g_value_set_int (is_secure, account->is_secure);
+
+	if(account->certificate != NULL)
+		certificate = gda_value_new_from_string (account->certificate, G_TYPE_STRING);
+	if(account->certificate_password != NULL)
+		certificate_password = gda_value_new_from_string (account->certificate_password, G_TYPE_STRING);
+
 	is_default = gda_value_new (G_TYPE_INT);
 	g_value_set_int (is_default, account->is_default);
 	res = gda_connection_insert_row_into_table (cnc, "account", &error,
@@ -180,6 +196,9 @@ void insert_data (GdaConnection *cnc, struct Account * account)
 			"will_topic", will_topic,
 			"is_retain", is_retain,
 			"qos", qos,
+			"is_secure", is_secure,
+			"certificate", certificate,
+			"certificate_password", certificate_password,
 			"is_default", is_default,
 			NULL);
 
@@ -200,6 +219,9 @@ void insert_data (GdaConnection *cnc, struct Account * account)
 	gda_value_free (will_topic);
 	gda_value_free (is_retain);
 	gda_value_free (qos);
+	gda_value_free (is_secure);
+	gda_value_free (certificate);
+	gda_value_free (certificate_password);
 	gda_value_free (is_default);
 
 }
@@ -406,6 +428,7 @@ void run_sql_non_select (GdaConnection *cnc, const gchar *sql)
 }
 
 struct MqttModel * get_accounts_from_db (GdaConnection *cnc) {
+
 	GdaDataModel *data_model;
 	GdaSqlParser *parser;
 	GdaStatement *stmt;
@@ -423,6 +446,9 @@ struct MqttModel * get_accounts_from_db (GdaConnection *cnc) {
 			"will_topic,"
 			"is_retain,"
 			"qos,"
+			"is_secure,"
+			"certificate,"
+			"certificate_password,"
 			"is_default"
 			" FROM account";
 	GError *error = NULL;
@@ -477,7 +503,20 @@ struct MqttModel * get_accounts_from_db (GdaConnection *cnc) {
 
     		account[i].is_retain = g_value_get_int(gda_data_model_get_value_at(data_model, 11, i, NULL));
     		account[i].qos = g_value_get_int(gda_data_model_get_value_at(data_model, 12, i, NULL));
-    		account[i].is_default = g_value_get_int(gda_data_model_get_value_at(data_model, 13, i, NULL));
+    		//ssl
+    		account[i].is_secure = g_value_get_int(gda_data_model_get_value_at(data_model, 13, i, NULL));
+
+    		if(gda_data_model_get_value_at(data_model, 14, i, NULL)->data->v_pointer != NULL)
+    			account[i].certificate = g_value_get_string(gda_data_model_get_value_at(data_model, 14, i, NULL));
+    		else
+    			account[i].certificate = NULL;
+
+    		if(gda_data_model_get_value_at(data_model, 15, i, NULL)->data->v_pointer != NULL)
+    			account[i].certificate_password = g_value_get_string(gda_data_model_get_value_at(data_model, 15, i, NULL));
+    		else
+    			account[i].certificate_password = NULL;
+
+    		account[i].is_default = g_value_get_int(gda_data_model_get_value_at(data_model, 16, i, NULL));
     	}
 
     	struct MqttModel * model = malloc (sizeof (struct MqttModel));
@@ -487,7 +526,6 @@ struct MqttModel * get_accounts_from_db (GdaConnection *cnc) {
     	return model;
     }
 	//gda_data_model_dump (data_model, stdout);
-
 }
 
 static struct MqttModel * get_topics () {

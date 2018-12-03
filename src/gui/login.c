@@ -30,7 +30,7 @@
 #include "../amqp/amqp_client.h"
 #include "main_w.h"
 
-GtkWidget * mqttWidgets[27];
+GtkWidget * mqttWidgets[36];
 //GtkWidget * box = NULL;
 enum Protocol current_protocol = MQTT;
 const int nWidget[] = { 0, 1, 2, 3, 4, 5 };
@@ -56,6 +56,7 @@ static GtkWidget * add_image(GtkWidget * label, GtkWidget * grid, gint x, gint y
 
 void warning_window_handler (GtkWidget *widget, GdkEventExpose *event, gpointer data)
 {
+	gtk_widget_destroy(widget);
 	//gtk_widget_set_sensitive(GTK_WIDGET (data), TRUE);
 }
 
@@ -74,9 +75,16 @@ static void print_amqp_box() {
 	for (int i = 0; i < G_N_ELEMENTS(mqttWidgets); i++) {
 		gtk_widget_hide(mqttWidgets[i]);
 	}
-	gtk_widget_show(mqttWidgets[6]);
-	gtk_widget_show(mqttWidgets[7]);
-	gtk_widget_show(mqttWidgets[8]);
+
+	for(int i = 0; i < 9; i++ )
+		gtk_widget_show(mqttWidgets[i]);
+
+	for(int i = 27; i < 36; i++ )
+		gtk_widget_show(mqttWidgets[i]);
+
+	for(int i = 12; i < 15; i++ )
+		gtk_widget_show(mqttWidgets[i]);
+
 }
 
 static void print_coap_box() {
@@ -90,6 +98,9 @@ static void print_coap_box() {
 	gtk_widget_show(mqttWidgets[12]);
 	gtk_widget_show(mqttWidgets[13]);
 	gtk_widget_show(mqttWidgets[14]);
+
+	for(int i = 27; i < 36; i++ )
+		gtk_widget_show(mqttWidgets[i]);
 }
 
 static void show_warn_window(GtkWidget * curr_widget,const gchar * warning_string) {
@@ -107,6 +118,56 @@ static void show_warn_window(GtkWidget * curr_widget,const gchar * warning_strin
 	g_signal_connect(G_OBJECT(warning_window), "delete_event", G_CALLBACK(warning_window_handler), parent);
 	gtk_widget_show_all(warning_window);
 }
+
+char *get_text_of_textview(GtkWidget *text_view) {
+    GtkTextIter start, end;
+    GtkTextBuffer *buffer = gtk_text_view_get_buffer((GtkTextView *)text_view);
+    gchar *text;
+    gtk_text_buffer_get_bounds(buffer, &start, &end);
+    text = gtk_text_buffer_get_text(buffer, &start, &end, FALSE);
+    return text;
+}
+
+static void save_button_handle(GtkWidget *widget, gpointer data) {
+
+	char *text = get_text_of_textview (GTK_WIDGET(data));
+	gtk_entry_set_text(GTK_ENTRY(mqttWidgets[32]), text);
+	GtkWidget * parent = gtk_widget_get_parent(GTK_WIDGET(data));
+	parent = gtk_widget_get_parent(parent);
+	parent = gtk_widget_get_parent(parent);
+	gtk_widget_destroy(GTK_WIDGET(parent));
+
+}
+
+
+static void show_dialog_window(GtkWidget *widget, GdkEvent  *event, gpointer user_data) {
+
+	GtkWidget * scrolled_window = gtk_scrolled_window_new (NULL,NULL);
+	gtk_container_set_border_width (GTK_CONTAINER (scrolled_window), 0);
+	gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (scrolled_window), GTK_POLICY_AUTOMATIC, GTK_POLICY_ALWAYS);
+
+	GtkWidget *_button, *text_view;
+	GtkWidget *dialog_window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
+	gtk_window_set_title (GTK_WINDOW (dialog_window), "Certificate");
+	gtk_window_set_resizable (GTK_WINDOW (dialog_window), FALSE);
+	gtk_widget_set_size_request (dialog_window, 700, 500);
+
+	GtkWidget * _box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 1);
+
+	text_view = gtk_text_view_new ();
+	gtk_container_add(GTK_CONTAINER(scrolled_window), text_view);
+	gtk_box_pack_start(GTK_BOX(_box), GTK_WIDGET(scrolled_window), TRUE, TRUE, 1);
+
+	_button = gtk_button_new_with_label("OK");
+	g_signal_connect(_button, "clicked", G_CALLBACK (save_button_handle), text_view);
+
+	gtk_box_pack_end(GTK_BOX(_box), GTK_WIDGET(_button), FALSE, TRUE, 1);
+	gtk_container_add(GTK_CONTAINER(dialog_window), _box);
+
+	g_signal_connect(G_OBJECT(dialog_window), "delete_event", G_CALLBACK(warning_window_handler), widget);
+	gtk_widget_show_all(dialog_window);
+}
+
 
 static void login_button_handle(GtkWidget *widget, gpointer data) {
 
@@ -136,7 +197,7 @@ static void login_button_handle(GtkWidget *widget, gpointer data) {
 	curr_widget = gtk_grid_get_child_at(GTK_GRID(grid), 2, 4);
 	const gchar * username = gtk_entry_get_text(GTK_ENTRY(curr_widget));
 	if(strlen(username) == 0 || strcmp("Enter User Name",username) ==0) {
-		if(current_protocol == MQTT || current_protocol == WEBSOCKETS) {
+		if(current_protocol == MQTT || current_protocol == WEBSOCKETS || current_protocol == AMQP) {
 			show_warn_window(curr_widget, "Please enter user name");
 			return;
 		} else {
@@ -149,7 +210,7 @@ static void login_button_handle(GtkWidget *widget, gpointer data) {
 	curr_widget = gtk_grid_get_child_at(GTK_GRID(grid), 2, 5);
 	const gchar * password = gtk_entry_get_text(GTK_ENTRY(curr_widget));
 	if(strlen(password) == 0 || strcmp("Enter Password",password) ==0) {
-		if( current_protocol == MQTT || current_protocol == WEBSOCKETS) {
+		if( current_protocol == MQTT || current_protocol == WEBSOCKETS || current_protocol == AMQP) {
 			show_warn_window(curr_widget, "Please enter password");
 			return;
 		} else {
@@ -244,6 +305,23 @@ static void login_button_handle(GtkWidget *widget, gpointer data) {
 	curr_widget = gtk_grid_get_child_at(GTK_GRID(grid), 2, 17);
 	account->qos = gtk_spin_button_get_value(GTK_SPIN_BUTTON (curr_widget));
 	account->is_default = 1;
+	//secure enabled
+	curr_widget = gtk_grid_get_child_at(GTK_GRID(grid), 2, 20);
+	account->is_secure = gtk_switch_get_state(GTK_SWITCH (curr_widget));
+	//certificate
+	curr_widget = gtk_grid_get_child_at(GTK_GRID(grid), 2, 21);
+	const gchar * cert = gtk_entry_get_text(GTK_ENTRY(curr_widget));
+	if((strlen(cert) == 0 || strcmp("Certificate",cert) ==0))
+		account->certificate = NULL;
+	else
+		account->certificate = cert;
+	//password
+	curr_widget = gtk_grid_get_child_at(GTK_GRID(grid), 2, 22);
+	const gchar * cert_pass = gtk_entry_get_text(GTK_ENTRY(curr_widget));
+	if((strlen(cert_pass) == 0 || strcmp("Password",cert_pass) ==0))
+		account->certificate_password = NULL;
+	else
+		account->certificate_password = cert_pass;
 
 	mqtt_listener = malloc (sizeof (struct MqttListener));
 	mqtt_listener->cs_pt = connection_success;
@@ -516,6 +594,52 @@ void activate_login_window(GtkApplication* application) {
 		spin = gtk_spin_button_new_with_range(0, 2, 1);
 		gtk_grid_attach(GTK_GRID(grid), spin, 2, 17, 1, 1);
 		mqttWidgets[i++] = spin;
+
+		//TLS
+		label = gtk_label_new("security");
+		gtk_widget_set_name (label, "login_label");
+		gtk_widget_set_halign (label, GTK_ALIGN_FILL);
+		gtk_grid_attach(GTK_GRID(grid), label, 0, 18, 3, 1);
+
+		separator = gtk_separator_new(GTK_ORIENTATION_HORIZONTAL);
+		gtk_grid_attach(GTK_GRID(grid), separator, 0, 19, 3, 1);
+
+		mqttWidgets[i++] = add_image(label, grid, 0, 20, "settings");
+
+		label = gtk_label_new("Enabled");
+		gtk_widget_set_halign (label, GTK_ALIGN_START);
+		gtk_grid_attach(GTK_GRID(grid), label, 1, 20, 1, 1);
+		mqttWidgets[i++] = label;
+
+		switcher = gtk_switch_new();
+		gtk_grid_attach(GTK_GRID(grid), switcher, 2, 20, 1, 1);
+		mqttWidgets[i++] = switcher;
+
+		mqttWidgets[i++] = add_image(label, grid, 0, 21, "settings");
+
+		label = gtk_label_new("Certificate");
+		gtk_widget_set_halign (label, GTK_ALIGN_START);
+		gtk_grid_attach(GTK_GRID(grid), label, 1, 21, 1, 1);
+		mqttWidgets[i++] = label;
+
+		entry = gtk_entry_new();
+		g_signal_connect(entry, "button-press-event", G_CALLBACK (show_dialog_window), grid);
+		gtk_entry_set_placeholder_text(GTK_ENTRY(entry), "Certificate");
+		gtk_grid_attach(GTK_GRID(grid), entry, 2, 21, 1, 1);
+		mqttWidgets[i++] = entry;
+
+		mqttWidgets[i++] = add_image(label, grid, 0, 22, "settings");
+
+		label = gtk_label_new("Password");
+		gtk_widget_set_halign (label, GTK_ALIGN_START);
+		gtk_grid_attach(GTK_GRID(grid), label, 1, 22, 1, 1);
+		mqttWidgets[i++] = label;
+
+		entry = gtk_entry_new();
+		gtk_entry_set_max_length(GTK_ENTRY(entry), 50);
+		gtk_entry_set_placeholder_text(GTK_ENTRY(entry), "Password");
+		gtk_grid_attach(GTK_GRID(grid), entry, 2, 22, 1, 1);
+		mqttWidgets[i++] = entry;
 
 		button = gtk_button_new_with_label("\nLog In\n");
 		gtk_widget_set_name (button, "log_in");

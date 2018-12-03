@@ -44,6 +44,10 @@ struct Account {
         enum QoS qos;
         int is_default;
         const char * will;
+
+    	int is_secure;
+    	const char * certificate;
+    	const char * certificate_password;
 };
 
 

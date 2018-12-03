@@ -23,8 +23,8 @@
 
 #include "../tcp_listener.h"
 
-int open_tcp_connection(const char * host, int port, int sock_type, struct TcpListener * iot_client);
-void close_tcp_connection();
-void write_to_tcp_connection(char * buff, int size);
+int init_net_service(const char * host, int port, int sock_type, struct TcpListener * iot_client);
+void stop_net_service();
+void write_to_net(char * buff, int size);
 
 #endif /* NET_TCP_CLIENT_H_ */

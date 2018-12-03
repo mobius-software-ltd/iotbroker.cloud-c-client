@@ -93,7 +93,8 @@ char * ws_encode(struct Message * message) {
 	case PUBLISH: {
 		struct Publish p = *(struct Publish*) message->packet;
 		json_object_set_new( root, "packet", json_integer( PUBLISH ) );
-		json_object_set_new( root, "packetID", json_integer( p.packet_id ) );
+		if(p.packet_id != 0)
+			json_object_set_new( root, "packetID", json_integer( p.packet_id ) );
 		json_t *topic = json_object();
 		json_object_set_new( topic, "name", json_string(p.topic.topic_name) );
 		json_object_set_new( topic, "qos", json_integer(p.topic.qos) );

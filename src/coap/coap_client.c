@@ -27,6 +27,7 @@
 #include "../mqtt_listener.h"
 #include "../tcp_listener.h"
 #include "../net/tcp_client.h"
+#include "../net/dtls_client.h"
 #include "../coap/coap_timers.h"
 #include "coap_parser.h"
 
@@ -52,7 +53,10 @@ void coap_encode_and_fire(struct CoapMessage * coap_message) {
 	int total_length = 256;
 	char * buf = coap_encode(coap_message, &total_length);
 	//send
-	write_to_tcp_connection(buf,total_length);
+	if(account->is_secure)
+		dtls_fire(buf,total_length);
+	else
+		write_to_net(buf,total_length);
 }
 
 int init_coap_client(struct Account * acc, struct MqttListener * listener) {
@@ -70,15 +74,20 @@ int init_coap_client(struct Account * acc, struct MqttListener * listener) {
 	int port = acc->server_port;
 	tcp_listener = malloc (sizeof (struct TcpListener));
 	tcp_listener->prd_pt = process_coap_rx;
-	int isSuccessful = open_tcp_connection(host, port, UDP_PROTOCOL, tcp_listener);
-	if (isSuccessful >= 0) {
-		printf("result of successful connection :  %i \n", isSuccessful);
+	int is_successful = 0;
+	if(!acc->is_secure)
+		init_net_service(host, port, UDP_PROTOCOL, tcp_listener);
+	else
+		init_dtls(host, port, tcp_listener, acc->certificate, acc->certificate_password);
+
+	if (is_successful >= 0) {
+		printf("COAP client successfully connected \n");
 	}
 	else
 	{
-		printf("result of unsuccessful connection : %i \n", isSuccessful);
+		printf("COAP client NOT connected \n");
 	}
-	return isSuccessful;
+	return is_successful;
 
 }
 
@@ -94,6 +103,10 @@ void coap_connect(struct Account * acc) {
 void send_coap_disconnect() {
 
 	coap_stop_all_timers();
+	if(account->is_secure)
+		stop_dtls_net_service();
+	else
+		stop_net_service();
 }
 
 void send_coap_subscribe(const char * topic_name, int qos) {

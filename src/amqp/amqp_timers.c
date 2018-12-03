@@ -56,7 +56,7 @@ static void *amqp_connect_task(void *arg)
 {
     //wait 5 sec until successful connection
     sleep(5);
-    close_tcp_connection();
+    stop_net_service();
     return 0;
 }
 

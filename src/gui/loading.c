@@ -34,7 +34,7 @@
 #include "gui_color.h"
 
 
-GtkWidget * account_list_window;
+GtkWidget * account_list_window = NULL;
 GtkWidget * loading_window;
 GtkApplication * app;
 
@@ -185,6 +185,7 @@ static void show_account_list_window(struct MqttModel * model) {
 	gtk_window_set_title (GTK_WINDOW (account_list_window), "Accounts' list");
 	gtk_window_set_resizable (GTK_WINDOW (account_list_window), FALSE);
 	gtk_widget_set_size_request (account_list_window, 400, 550);
+	g_signal_connect(G_OBJECT(account_list_window), "delete_event", G_CALLBACK(quit), NULL);
 
 	scrolled_window = gtk_scrolled_window_new (NULL,NULL);
 	gtk_container_set_border_width (GTK_CONTAINER (scrolled_window), 0);
@@ -284,5 +285,6 @@ static void connection_success() {
 }
 
 void reload_account_list_window() {
-	gtk_widget_show_all(account_list_window);
+
+	show_account_list_window(retrieve_accounts());
 }

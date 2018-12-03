@@ -19,7 +19,6 @@
 */
 #include <stdlib.h>
 #include <stdio.h>
-#include "../net/tcp_client.h"
 #include "../net/lws_net_client.h"
 #include "../account.h"
 #include "../tcp_listener.h"
@@ -43,8 +42,6 @@
 #include "../mqtt/parser.h"
 #include "../ws/ws_parser.h"
 
-#define TCP_PROTOCOL 1
-
 void process_rx(char * data, int length);
 void send_ping(void);
 void send_connect(struct Account * account);
@@ -66,7 +63,7 @@ void encode_and_fire(struct Message * message) {
 		int length = get_length(message);
 		int total_length = length + 2;
 		char * buf = encode(message, length);
-		write_to_tcp_connection(buf,total_length);
+		raw_fire(buf,total_length);
 	} else {
 		char * s = ws_encode(message);
 		fire(s);
@@ -84,12 +81,7 @@ int init_mqtt_client(struct Account * acc, struct MqttListener * listener) {
 	mqtt_listener->send_unsubscribe = send_unsubscribe;
 	tcp_listener = malloc (sizeof (struct TcpListener));
 	tcp_listener->prd_pt = mqtt_data_received;
-
-	int is_successful = 0;
-	if(acc->protocol == MQTT)
-		is_successful = open_tcp_connection(acc->server_host, acc->server_port, TCP_PROTOCOL, tcp_listener);
-	else
-		is_successful = open_lws_net_connection(acc->server_host, acc->server_port, 0, tcp_listener);
+	int is_successful = open_lws_net_connection(acc->server_host, acc->server_port, tcp_listener, acc->is_secure, acc->certificate, acc->certificate_password, acc->protocol);
 
 	if (is_successful >= 0)
 		printf("MQTT client successfully connected with transport %s\n", acc->protocol == MQTT ? "TCP" : "WEBSOCKETS" );
@@ -251,6 +243,7 @@ void send_disconnect() {
 	struct Message * message = malloc (sizeof (struct Message));
 	message->message_type = 14;
 	encode_and_fire(message);
+	lws_close_tcp_connection();
 }
 
 void send_ping() {
@@ -263,7 +256,7 @@ void send_ping() {
 void mqtt_data_received(char * buf, int readable_bytes) {
 	int i = 0;
 	int length = buf[1]+2;
-	if(length < readable_bytes) {
+	if(length < readable_bytes && account->protocol == MQTT) {
 		do {
 			char * next_bytes = malloc(length * sizeof(char));
 			memcpy(next_bytes,&(buf[i]),length);

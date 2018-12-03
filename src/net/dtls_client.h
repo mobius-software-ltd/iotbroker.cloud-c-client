@@ -17,15 +17,14 @@
 * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 */
-#include <stdlib.h>
-#include <gtk/gtk.h>
-#include "../mqtt_listener.h"
 
-void quit (GtkWidget *widget, GdkEvent  *event, gpointer data)
-{
-	if(data != NULL) {
-		struct MqttListener * listener = (struct MqttListener * )data;
-		listener->send_disconnect();
-	}
-	exit(0);
-}
+#ifndef DTLS_CLIENT_H_
+#define DTLS_CLIENT_H_
+
+#include "../tcp_listener.h"
+#include "../account.h"
+int init_dtls(const char * host, int port, struct TcpListener * listener, const char * cert, const char * cert_password);
+void dtls_fire(char * buf, int length);
+void stop_dtls_net_service();
+
+#endif /* DTLS_CLIENT_H_ */
