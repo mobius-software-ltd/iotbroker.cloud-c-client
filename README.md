@@ -67,6 +67,6 @@ right-click **Run as** > **Build Project** >**2Local C/C++ Application**.
 If the procedure is successful, you will see the Login page in the form of pop-up window.  
 Please note that at this stage it is not possible to register as a client. You can only log in to your existing account. 
 
-IoTBroker.Cloud C Client is developed by [Mobius Software](http://mobius-software.com/).
+IoTBroker.Cloud C Client is developed by [Mobius Software](https://www.mobius-software.com/).
 
 ## [License](LICENSE.md)
