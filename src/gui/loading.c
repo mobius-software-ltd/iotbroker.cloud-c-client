@@ -176,6 +176,17 @@ struct MqttModel * retrieve_accounts() {
 	return mqttModel.get_accounts_pt();
 }
 
+static void above_button(GtkWidget *window, gpointer data)
+{
+    GdkCursor * c = gdk_cursor_new_for_display(gdk_display_get_default(), GDK_HAND2);
+    gdk_window_set_cursor(gtk_widget_get_window(account_list_window), c);
+
+}
+static void out_of_button(GtkWidget *window, gpointer data)
+{
+    gdk_window_set_cursor(gtk_widget_get_window(account_list_window), NULL);
+}
+
 static void show_account_list_window(struct MqttModel * model) {
 
 	GtkWidget *grid;
@@ -237,6 +248,8 @@ static void show_account_list_window(struct MqttModel * model) {
 		sprintf(port_string, "%d", model -> account -> server_port);
 		strcat(str, port_string);
 		button = gtk_button_new_with_label(str);
+		g_signal_connect(G_OBJECT(button), "enter-notify-event", G_CALLBACK(above_button), NULL);
+		g_signal_connect(G_OBJECT(button), "leave-notify-event", G_CALLBACK(out_of_button), NULL);
 		//gtk_widget_set_halign (button, GTK_ALIGN_START);
 		gtk_widget_set_hexpand(button, TRUE);
 		gtk_widget_set_name (button, "account");
@@ -252,6 +265,8 @@ static void show_account_list_window(struct MqttModel * model) {
 		gtk_box_pack_start (GTK_BOX(box), GTK_WIDGET(grid), FALSE, TRUE, 1);
 		gtk_grid_attach (GTK_GRID (grid), button, 0, 0, 1, 1);
 		button = gtk_button_new_with_label("       ");
+		g_signal_connect(G_OBJECT(button), "enter-notify-event", G_CALLBACK(above_button), NULL);
+		g_signal_connect(G_OBJECT(button), "leave-notify-event", G_CALLBACK(out_of_button), NULL);
 		gtk_widget_set_hexpand (button, FALSE);
 		gtk_widget_set_name (button, "remove_account");
 		g_signal_connect(button, "clicked", G_CALLBACK (remove_account_button_handle), grid);
@@ -265,6 +280,10 @@ static void show_account_list_window(struct MqttModel * model) {
 	box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 5);
 	gtk_box_pack_start (GTK_BOX(box), scrolled_window, TRUE, TRUE, 1);
 	button = gtk_button_new_with_label("\nAdd new account\n");
+
+	g_signal_connect(G_OBJECT(button), "enter-notify-event", G_CALLBACK(above_button), NULL);
+	g_signal_connect(G_OBJECT(button), "leave-notify-event", G_CALLBACK(out_of_button), NULL);
+
 	gtk_widget_set_name (button, "add_account");
 
 	g_signal_connect(G_OBJECT(button), "clicked", G_CALLBACK(add_new_account_handler), app);

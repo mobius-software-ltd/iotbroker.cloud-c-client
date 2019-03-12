@@ -60,6 +60,17 @@ void warning_window_handler (GtkWidget *widget, GdkEventExpose *event, gpointer 
 	//gtk_widget_set_sensitive(GTK_WIDGET (data), TRUE);
 }
 
+static void above_button(GtkWidget *window, gpointer data)
+{
+    GdkCursor * c = gdk_cursor_new_for_display(gdk_display_get_default(), GDK_HAND2);
+    gdk_window_set_cursor(gtk_widget_get_window(login_window), c);
+
+}
+static void out_of_button(GtkWidget *window, gpointer data)
+{
+    gdk_window_set_cursor(gtk_widget_get_window(login_window), NULL);
+}
+
 static void print_mqtt_sn_box() {
 
 	for (int i = 0; i < G_N_ELEMENTS(mqttWidgets); i++) {
@@ -643,6 +654,8 @@ void activate_login_window(GtkApplication* application) {
 		mqttWidgets[i++] = entry;
 
 		button = gtk_button_new_with_label("\nLog In\n");
+		g_signal_connect(G_OBJECT(button), "enter-notify-event", G_CALLBACK(above_button), NULL);
+		g_signal_connect(G_OBJECT(button), "leave-notify-event", G_CALLBACK(out_of_button), NULL);
 		gtk_widget_set_name (button, "log_in");
 		g_signal_connect(button, "clicked", G_CALLBACK (login_button_handle), grid);
 

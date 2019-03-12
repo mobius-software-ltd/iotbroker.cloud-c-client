@@ -44,6 +44,17 @@ struct MqttModel * mqtt_model;
 GtkWidget *topics_box;
 GtkWidget *messages_box;
 
+static void above_button(GtkWidget *window, gpointer data)
+{
+    GdkCursor * c = gdk_cursor_new_for_display(gdk_display_get_default(), GDK_HAND2);
+    gdk_window_set_cursor(gtk_widget_get_window(main_window), c);
+
+}
+static void out_of_button(GtkWidget *window, gpointer data)
+{
+    gdk_window_set_cursor(gtk_widget_get_window(main_window), NULL);
+}
+
 static void add_settings_image(GtkWidget * label, GtkWidget * grid, gint x, gint y) {
 
 	label = gtk_label_new ("           ");
@@ -125,6 +136,8 @@ void add_topics_to_list_box (const char * topic_name, int qos) {
 
 	button = gtk_button_new_with_label ("      ");
 	gtk_widget_set_name (button, "delete");
+	g_signal_connect(G_OBJECT(button), "enter-notify-event", G_CALLBACK(above_button), NULL);
+	g_signal_connect(G_OBJECT(button), "leave-notify-event", G_CALLBACK(out_of_button), NULL);
 	g_signal_connect(button, "clicked", G_CALLBACK (usubscribe_button_handle), grid);
 	gtk_widget_set_hexpand (button, FALSE);
 	gtk_grid_attach (GTK_GRID (grid), button, 2, 0, 1, 1);
@@ -289,6 +302,8 @@ void activate_main_window(GtkApplication* app, enum Protocol protocol, struct Mq
 
 
 	  button = gtk_button_new_with_label ("\nAdd\n");
+	  g_signal_connect(G_OBJECT(button), "enter-notify-event", G_CALLBACK(above_button), NULL);
+	  g_signal_connect(G_OBJECT(button), "leave-notify-event", G_CALLBACK(out_of_button), NULL);
 	  gtk_widget_set_name (button, "add_topic");
 	  g_signal_connect (button, "clicked", G_CALLBACK (add_topic_button_handle), grid);
 	  gtk_box_pack_end (GTK_BOX(box), GTK_WIDGET(button), FALSE, FALSE, 0);
@@ -355,6 +370,8 @@ void activate_main_window(GtkApplication* app, enum Protocol protocol, struct Mq
 	  }
 
 	  button = gtk_button_new_with_label ("\nSend\n");
+	  g_signal_connect(G_OBJECT(button), "enter-notify-event", G_CALLBACK(above_button), NULL);
+	  g_signal_connect(G_OBJECT(button), "leave-notify-event", G_CALLBACK(out_of_button), NULL);
 	  gtk_widget_set_name (button, "send_message");
 	  g_signal_connect (button, "clicked", G_CALLBACK (send_message_button_handle), grid);
 	  gtk_box_pack_start (GTK_BOX(box), GTK_WIDGET(button), FALSE, FALSE, 1);
