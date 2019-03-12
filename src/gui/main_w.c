@@ -449,19 +449,28 @@ void send_message_button_handle (GtkWidget *widget, gpointer data) {
 
 	//content
 	GtkWidget * curr_widget = gtk_grid_get_child_at(GTK_GRID(grid), 2, 0);
-	const gchar * content = gtk_entry_get_text(GTK_ENTRY(curr_widget));
+
+	const gchar * content_current = gtk_entry_get_text(GTK_ENTRY(curr_widget));
+	const gchar * content = (char *) malloc(strlen(content_current));
+	memcpy((char*)content, (char*)content_current, strlen(content_current) + 1);
+
 	if(strlen(content) == 0 || strcmp("Enter content",content) == 0) {
 		show_warn_window(curr_widget, "Please enter content");
 		return;
 	}
+	gtk_entry_set_text(GTK_ENTRY(curr_widget),"");
 
 	//topic
 	curr_widget = gtk_grid_get_child_at(GTK_GRID(grid), 2, 1);
-	const gchar * topic_name = gtk_entry_get_text(GTK_ENTRY(curr_widget));
+	const gchar * topic_name_current = gtk_entry_get_text(GTK_ENTRY(curr_widget));
+	const gchar * topic_name = (char *) malloc(strlen(topic_name_current));
+	memcpy((char*)topic_name, (char*)topic_name_current, strlen(topic_name_current) + 1);
+
 	if(strlen(topic_name) == 0 || strcmp("Enter topic",topic_name) == 0) {
 		show_warn_window(curr_widget, "Enter Topic");
 		return;
 	}
+	gtk_entry_set_text(GTK_ENTRY(curr_widget),"");
 
 	curr_widget = gtk_grid_get_child_at(GTK_GRID(grid), 2, 2);
 	int qos = gtk_spin_button_get_value(GTK_SPIN_BUTTON(curr_widget));
@@ -477,6 +486,7 @@ void send_message_button_handle (GtkWidget *widget, gpointer data) {
 	}
 
 	mqtt_listener->send_message(content, topic_name, qos, retain, dup);
+
 
 }
 
