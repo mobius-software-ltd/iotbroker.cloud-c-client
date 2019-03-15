@@ -191,100 +191,108 @@ static void show_account_list_window(struct MqttModel * model) {
 
 	GtkWidget *grid;
 	GtkWidget * scrolled_window;
-	account_list_window = gtk_application_window_new (app);
+	if(account_list_window==NULL) {
+		account_list_window = gtk_application_window_new (app);
+		gtk_window_set_title (GTK_WINDOW (account_list_window), "Accounts' list");
+		gtk_window_set_resizable (GTK_WINDOW (account_list_window), FALSE);
+		gtk_widget_set_size_request (account_list_window, 400, 550);
+		g_signal_connect(G_OBJECT(account_list_window), "delete_event", G_CALLBACK(quit), NULL);
 
-	gtk_window_set_title (GTK_WINDOW (account_list_window), "Accounts' list");
-	gtk_window_set_resizable (GTK_WINDOW (account_list_window), FALSE);
-	gtk_widget_set_size_request (account_list_window, 400, 550);
-	g_signal_connect(G_OBJECT(account_list_window), "delete_event", G_CALLBACK(quit), NULL);
+		scrolled_window = gtk_scrolled_window_new (NULL,NULL);
+		gtk_container_set_border_width (GTK_CONTAINER (scrolled_window), 0);
+		gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (scrolled_window), GTK_POLICY_AUTOMATIC, GTK_POLICY_ALWAYS);
 
-	scrolled_window = gtk_scrolled_window_new (NULL,NULL);
-	gtk_container_set_border_width (GTK_CONTAINER (scrolled_window), 0);
-	gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (scrolled_window), GTK_POLICY_AUTOMATIC, GTK_POLICY_ALWAYS);
+		GtkWidget * box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
+		//add label
 
-	GtkWidget * box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
-	//add label
+		GtkWidget * label = gtk_label_new("\nPlease select account\n");
+		gtk_widget_set_name (label, "label_select_account");
+		gtk_box_pack_start (GTK_BOX(box), label, FALSE, FALSE, 0);
 
-	GtkWidget * label = gtk_label_new("\nPlease select account\n");
-	gtk_widget_set_name (label, "label_select_account");
-	gtk_box_pack_start (GTK_BOX(box), label, FALSE, FALSE, 0);
+		GtkWidget * button = NULL;
 
-	GtkWidget * button = NULL;
+		for(int i = 0; i < model -> account_size; i++) {
+			char str [256] = {};
+			enum Protocol protocol = model-> account -> protocol;
+			char * protocol_string = NULL;
+			switch (protocol) {
+			case MQTT: protocol_string    = "MQTT";
+			break;
+			case MQTT_SN: protocol_string = "MQTT-SN";
+			break;
+			case COAP: protocol_string = "COAP";
+			break;
+			case AMQP: protocol_string = "AMQP";
+			break;
+			case WEBSOCKETS: protocol_string = "WEBSOCKETS";
+			break;
+			}
+			strcat(str, protocol_string);
+			strcat(str, "\n");
+			strcat(str, model-> account -> client_id);
+			strcat(str, "\n");
+			strcat(str, model-> account -> server_host);
+			strcat(str, ":");
+			char port_string [256];
+			sprintf(port_string, "%d", model -> account -> server_port);
+			strcat(str, port_string);
+			button = gtk_button_new_with_label(str);
+			g_signal_connect(G_OBJECT(button), "enter-notify-event", G_CALLBACK(above_button), NULL);
+			g_signal_connect(G_OBJECT(button), "leave-notify-event", G_CALLBACK(out_of_button), NULL);
+			gtk_widget_set_halign (button, GTK_ALIGN_FILL);
+			gtk_widget_set_hexpand(button, TRUE);
+			gtk_widget_set_name (button, "account");
+			g_signal_connect(G_OBJECT(button), "clicked", G_CALLBACK(activate_main_window_default), model -> account);
 
-	for(int i = 0; i < model -> account_size; i++) {
-		char str [256] = {};
-		enum Protocol protocol = model-> account -> protocol;
-		char * protocol_string = NULL;
-		switch (protocol) {
-		case MQTT: protocol_string    = "MQTT";
-		break;
-		case MQTT_SN: protocol_string = "MQTT-SN";
-		break;
-		case COAP: protocol_string = "COAP";
-		break;
-		case AMQP: protocol_string = "AMQP";
-		break;
-		case WEBSOCKETS: protocol_string = "WEBSOCKETS";
-		break;
+			grid = gtk_grid_new ();
+
+			label = gtk_label_new ("user_imag");
+			gtk_widget_set_hexpand (label, FALSE);
+			gtk_widget_set_name (label, "user_account");
+			gtk_grid_attach (GTK_GRID (grid), label, 0, 0, 1, 1);
+
+			char account_id_string [5];
+			sprintf(account_id_string, "%d", model-> account ->id);
+
+			gtk_widget_set_name (grid, account_id_string);
+
+			gtk_box_pack_start (GTK_BOX(box), GTK_WIDGET(grid), FALSE, TRUE, 1);
+			gtk_grid_attach (GTK_GRID (grid), button, 1, 0, 1, 1);
+			button = gtk_button_new_with_label("             ");
+			g_signal_connect(G_OBJECT(button), "enter-notify-event", G_CALLBACK(above_button), NULL);
+			g_signal_connect(G_OBJECT(button), "leave-notify-event", G_CALLBACK(out_of_button), NULL);
+			gtk_widget_set_hexpand (button, FALSE);
+			gtk_widget_set_name (button, "remove_account");
+			g_signal_connect(button, "clicked", G_CALLBACK (remove_account_button_handle), grid);
+			gtk_grid_attach (GTK_GRID (grid), button, 2, 0, 1, 1);
+
+			model->account++;
 		}
-		strcat(str, protocol_string);
-		strcat(str, "\n");
-		strcat(str, model-> account -> client_id);
-		strcat(str, "\n");
-		strcat(str, model-> account -> server_host);
-		strcat(str, ":");
-		char port_string [256];
-		sprintf(port_string, "%d", model -> account -> server_port);
-		strcat(str, port_string);
-		button = gtk_button_new_with_label(str);
+
+		gtk_container_add(GTK_CONTAINER (scrolled_window), box);
+
+		box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 5);
+		gtk_box_pack_start (GTK_BOX(box), scrolled_window, TRUE, TRUE, 1);
+		button = gtk_button_new_with_label("\nAdd new account\n");
+
 		g_signal_connect(G_OBJECT(button), "enter-notify-event", G_CALLBACK(above_button), NULL);
 		g_signal_connect(G_OBJECT(button), "leave-notify-event", G_CALLBACK(out_of_button), NULL);
-		gtk_widget_set_halign (button, GTK_ALIGN_FILL);
-		gtk_widget_set_hexpand(button, TRUE);
-		gtk_widget_set_name (button, "account");
-		g_signal_connect(G_OBJECT(button), "clicked", G_CALLBACK(activate_main_window_default), model -> account);
 
-		grid = gtk_grid_new ();
+		gtk_widget_set_name (button, "add_account");
 
-		label = gtk_label_new ("user_imag");
-		gtk_widget_set_hexpand (label, FALSE);
-		gtk_widget_set_name (label, "user_account");
-		gtk_grid_attach (GTK_GRID (grid), label, 0, 0, 1, 1);
+		g_signal_connect(G_OBJECT(button), "clicked", G_CALLBACK(add_new_account_handler), app);
 
-		char account_id_string [5];
-		sprintf(account_id_string, "%d", model-> account ->id);
+		gtk_box_pack_start (GTK_BOX(box), button, FALSE, FALSE, 0);
+		gtk_container_add(GTK_CONTAINER (account_list_window), box);
 
-		gtk_widget_set_name (grid, account_id_string);
-
-		gtk_box_pack_start (GTK_BOX(box), GTK_WIDGET(grid), FALSE, TRUE, 1);
-		gtk_grid_attach (GTK_GRID (grid), button, 1, 0, 1, 1);
-		button = gtk_button_new_with_label("             ");
-		g_signal_connect(G_OBJECT(button), "enter-notify-event", G_CALLBACK(above_button), NULL);
-		g_signal_connect(G_OBJECT(button), "leave-notify-event", G_CALLBACK(out_of_button), NULL);
-		gtk_widget_set_hexpand (button, FALSE);
-		gtk_widget_set_name (button, "remove_account");
-		g_signal_connect(button, "clicked", G_CALLBACK (remove_account_button_handle), grid);
-		gtk_grid_attach (GTK_GRID (grid), button, 2, 0, 1, 1);
-
-		model->account++;
+		gtk_widget_show_all (account_list_window);
+	}
+	else
+	{
+		gtk_widget_show (account_list_window);
 	}
 
-	gtk_container_add(GTK_CONTAINER (scrolled_window), box);
 
-	box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 5);
-	gtk_box_pack_start (GTK_BOX(box), scrolled_window, TRUE, TRUE, 1);
-	button = gtk_button_new_with_label("\nAdd new account\n");
-
-	g_signal_connect(G_OBJECT(button), "enter-notify-event", G_CALLBACK(above_button), NULL);
-	g_signal_connect(G_OBJECT(button), "leave-notify-event", G_CALLBACK(out_of_button), NULL);
-
-	gtk_widget_set_name (button, "add_account");
-
-	g_signal_connect(G_OBJECT(button), "clicked", G_CALLBACK(add_new_account_handler), app);
-
-	gtk_box_pack_start (GTK_BOX(box), button, FALSE, FALSE, 0);
-	gtk_container_add(GTK_CONTAINER (account_list_window), box);
-	gtk_widget_show_all (account_list_window);
 }
 
 static void add_new_account_handler(GtkButton *button, gpointer user_data) {

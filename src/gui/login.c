@@ -29,6 +29,7 @@
 #include "../coap/coap_client.h"
 #include "../amqp/amqp_client.h"
 #include "main_w.h"
+#include "loading.h"
 
 GtkWidget * mqttWidgets[36];
 //GtkWidget * box = NULL;
@@ -44,6 +45,12 @@ GtkWidget * login_window = NULL;
 void activate_login_window();
 
 static void connection_success(void);
+
+void quit_to_list_accounts (GtkWidget *widget, GdkEvent  *event, gpointer data)
+{
+	gtk_widget_destroy(login_window);
+	reload_account_list_window();
+}
 
 static GtkWidget * add_image(GtkWidget * label, GtkWidget * grid, gint x, gint y, char* image_name) {
 
@@ -445,7 +452,7 @@ void activate_login_window(GtkApplication* application) {
 		gtk_window_set_title (GTK_WINDOW (login_window), "IOT Broker C client");
 		gtk_window_set_resizable (GTK_WINDOW (login_window), FALSE);
 		gtk_window_set_default_size (GTK_WINDOW (login_window), 280, 400);
-		g_signal_connect(G_OBJECT(login_window), "delete_event", G_CALLBACK(quit), mqtt_listener);
+		g_signal_connect(G_OBJECT(login_window), "delete_event", G_CALLBACK(quit_to_list_accounts), mqtt_listener);
 
 		GtkWidget *box, *grid, *separator, *label, *chooser, *entry, *switcher, *spin, *button;
 
