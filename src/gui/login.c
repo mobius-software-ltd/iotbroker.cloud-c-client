@@ -139,7 +139,7 @@ char *get_text_of_textview(GtkWidget *text_view) {
     return text;
 }
 
-static void save_button_handle(GtkWidget *widget, gpointer data) {
+static void save_cert_button_handle(GtkWidget *widget, gpointer data) {
 
 	char *text = get_text_of_textview (GTK_WIDGET(data));
 	gtk_entry_set_text(GTK_ENTRY(mqttWidgets[32]), text);
@@ -150,8 +150,20 @@ static void save_button_handle(GtkWidget *widget, gpointer data) {
 
 }
 
+static void save_will_button_handle(GtkWidget *widget, gpointer data) {
+
+	char *text = get_text_of_textview (GTK_WIDGET(data));
+	gtk_entry_set_text(GTK_ENTRY(mqttWidgets[17]), text);
+	GtkWidget * parent = gtk_widget_get_parent(GTK_WIDGET(data));
+	parent = gtk_widget_get_parent(parent);
+	parent = gtk_widget_get_parent(parent);
+	gtk_widget_destroy(GTK_WIDGET(parent));
+
+}
 
 static void show_dialog_window(GtkWidget *widget, GdkEvent  *event, gpointer user_data) {
+
+	char * field =  (char*) user_data;
 
 	GtkWidget * scrolled_window = gtk_scrolled_window_new (NULL,NULL);
 	gtk_container_set_border_width (GTK_CONTAINER (scrolled_window), 0);
@@ -159,7 +171,7 @@ static void show_dialog_window(GtkWidget *widget, GdkEvent  *event, gpointer use
 
 	GtkWidget *_button, *text_view;
 	GtkWidget *dialog_window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
-	gtk_window_set_title (GTK_WINDOW (dialog_window), "Certificate");
+	gtk_window_set_title (GTK_WINDOW (dialog_window), "Enter data");
 	gtk_window_set_resizable (GTK_WINDOW (dialog_window), FALSE);
 	gtk_widget_set_size_request (dialog_window, 700, 500);
 
@@ -170,7 +182,14 @@ static void show_dialog_window(GtkWidget *widget, GdkEvent  *event, gpointer use
 	gtk_box_pack_start(GTK_BOX(_box), GTK_WIDGET(scrolled_window), TRUE, TRUE, 1);
 
 	_button = gtk_button_new_with_label("OK");
-	g_signal_connect(_button, "clicked", G_CALLBACK (save_button_handle), text_view);
+	if(strcmp("cert",field) == 0)
+	{
+		g_signal_connect(_button, "clicked", G_CALLBACK (save_cert_button_handle), text_view);
+	}
+	else
+	{
+		g_signal_connect(_button, "clicked", G_CALLBACK (save_will_button_handle), text_view);
+	}
 
 	gtk_box_pack_end(GTK_BOX(_box), GTK_WIDGET(_button), FALSE, TRUE, 1);
 	gtk_container_add(GTK_CONTAINER(dialog_window), _box);
@@ -567,6 +586,7 @@ void activate_login_window(GtkApplication* application) {
 		mqttWidgets[i++] = label;
 
 		entry = gtk_entry_new();
+		g_signal_connect(entry, "button-press-event", G_CALLBACK (show_dialog_window), "will");
 		gtk_entry_set_max_length(GTK_ENTRY(entry), 50);
 		gtk_entry_set_placeholder_text(GTK_ENTRY(entry), "Enter Will");
 		gtk_grid_attach(GTK_GRID(grid), entry, 2, 14, 1, 1);
@@ -635,7 +655,7 @@ void activate_login_window(GtkApplication* application) {
 		mqttWidgets[i++] = label;
 
 		entry = gtk_entry_new();
-		g_signal_connect(entry, "button-press-event", G_CALLBACK (show_dialog_window), grid);
+		g_signal_connect(entry, "button-press-event", G_CALLBACK (show_dialog_window), "cert");
 		gtk_entry_set_placeholder_text(GTK_ENTRY(entry), "Certificate");
 		gtk_grid_attach(GTK_GRID(grid), entry, 2, 21, 1, 1);
 		mqttWidgets[i++] = entry;

@@ -43,6 +43,62 @@ struct MqttModel * mqtt_model;
 
 GtkWidget *topics_box;
 GtkWidget *messages_box;
+GtkWidget *content_entry;
+
+
+void discard_handler (GtkWidget *widget, GdkEventExpose *event, gpointer data)
+{
+	gtk_widget_destroy(widget);
+	//gtk_widget_set_sensitive(GTK_WIDGET (data), TRUE);
+}
+
+static char *get_text_of_textview(GtkWidget *text_view) {
+    GtkTextIter start, end;
+    GtkTextBuffer *buffer = gtk_text_view_get_buffer((GtkTextView *)text_view);
+    gchar *text;
+    gtk_text_buffer_get_bounds(buffer, &start, &end);
+    text = gtk_text_buffer_get_text(buffer, &start, &end, FALSE);
+    return text;
+}
+
+static void save_content_button_handle(GtkWidget *widget, gpointer data) {
+
+	char *text = get_text_of_textview (GTK_WIDGET(data));
+	gtk_entry_set_text(GTK_ENTRY(content_entry), text);
+	GtkWidget * parent = gtk_widget_get_parent(GTK_WIDGET(data));
+	parent = gtk_widget_get_parent(parent);
+	parent = gtk_widget_get_parent(parent);
+	gtk_widget_destroy(GTK_WIDGET(parent));
+
+}
+
+static void show_dialog_window(GtkWidget *widget, GdkEvent  *event, gpointer user_data) {
+
+	GtkWidget * scrolled_window = gtk_scrolled_window_new (NULL,NULL);
+	gtk_container_set_border_width (GTK_CONTAINER (scrolled_window), 0);
+	gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (scrolled_window), GTK_POLICY_AUTOMATIC, GTK_POLICY_ALWAYS);
+
+	GtkWidget *_button, *text_view;
+	GtkWidget *dialog_window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
+	gtk_window_set_title (GTK_WINDOW (dialog_window), "Enter data");
+	gtk_window_set_resizable (GTK_WINDOW (dialog_window), FALSE);
+	gtk_widget_set_size_request (dialog_window, 700, 500);
+
+	GtkWidget * _box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 1);
+
+	text_view = gtk_text_view_new ();
+	gtk_container_add(GTK_CONTAINER(scrolled_window), text_view);
+	gtk_box_pack_start(GTK_BOX(_box), GTK_WIDGET(scrolled_window), TRUE, TRUE, 1);
+
+	_button = gtk_button_new_with_label("OK");
+	g_signal_connect(_button, "clicked", G_CALLBACK (save_content_button_handle), text_view);
+
+	gtk_box_pack_end(GTK_BOX(_box), GTK_WIDGET(_button), FALSE, TRUE, 1);
+	gtk_container_add(GTK_CONTAINER(dialog_window), _box);
+
+	g_signal_connect(G_OBJECT(dialog_window), "delete_event", G_CALLBACK(discard_handler), widget);
+	gtk_widget_show_all(dialog_window);
+}
 
 static void above_button(GtkWidget *window, gpointer data)
 {
@@ -348,6 +404,8 @@ void activate_main_window(GtkApplication* app, enum Protocol protocol, struct Mq
 	  gtk_widget_set_halign (label, GTK_ALIGN_START);
 	  gtk_grid_attach (GTK_GRID (grid), label, 1, 0, 1, 1);
 	  entry = gtk_entry_new();
+	  content_entry = entry;
+	  g_signal_connect(entry, "button-press-event", G_CALLBACK (show_dialog_window), NULL);
 	  gtk_entry_set_placeholder_text(GTK_ENTRY (entry), "Enter content");
 	  gtk_grid_attach (GTK_GRID (grid), entry, 2, 0, 1, 1);
 
