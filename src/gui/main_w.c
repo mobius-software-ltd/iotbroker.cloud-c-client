@@ -535,7 +535,7 @@ void send_message_button_handle (GtkWidget *widget, gpointer data) {
 	GtkWidget * curr_widget = gtk_grid_get_child_at(GTK_GRID(grid), 2, 0);
 
 	const gchar * content_current = gtk_entry_get_text(GTK_ENTRY(curr_widget));
-	const gchar * content = (char *) malloc(strlen(content_current));
+	const gchar * content = (char *) malloc(strlen(content_current)+1);
 	memcpy((char*)content, (char*)content_current, strlen(content_current) + 1);
 
 	if(strlen(content) == 0 || strcmp("Enter content",content) == 0) {
@@ -547,7 +547,7 @@ void send_message_button_handle (GtkWidget *widget, gpointer data) {
 	//topic
 	curr_widget = gtk_grid_get_child_at(GTK_GRID(grid), 2, 1);
 	const gchar * topic_name_current = gtk_entry_get_text(GTK_ENTRY(curr_widget));
-	const gchar * topic_name = (char *) malloc(strlen(topic_name_current));
+	const gchar * topic_name = (char *) malloc(strlen(topic_name_current)+1);
 	memcpy((char*)topic_name, (char*)topic_name_current, strlen(topic_name_current) + 1);
 
 	if(strlen(topic_name) == 0 || strcmp("Enter topic",topic_name) == 0) {
