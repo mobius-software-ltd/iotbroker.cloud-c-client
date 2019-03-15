@@ -210,9 +210,6 @@ static void show_account_list_window(struct MqttModel * model) {
 	gtk_box_pack_start (GTK_BOX(box), label, FALSE, FALSE, 0);
 
 	GtkWidget * button = NULL;
-	char * padding = "                                                  \n";
-	char * sn_padding = "                                              \n";
-	char * ws_padding = "                                   \n";
 
 	for(int i = 0; i < model -> account_size; i++) {
 		char str [256] = {};
@@ -231,17 +228,9 @@ static void show_account_list_window(struct MqttModel * model) {
 		break;
 		}
 		strcat(str, protocol_string);
-		if(protocol == MQTT_SN) {
-			strcat(str, sn_padding);
-		} else if (protocol == WEBSOCKETS) {
-			strcat(str, ws_padding);
-		} else {
-			strcat(str, padding);
-		}
-
+		strcat(str, "\n");
 		strcat(str, model-> account -> client_id);
 		strcat(str, "\n");
-
 		strcat(str, model-> account -> server_host);
 		strcat(str, ":");
 		char port_string [256];
@@ -250,12 +239,17 @@ static void show_account_list_window(struct MqttModel * model) {
 		button = gtk_button_new_with_label(str);
 		g_signal_connect(G_OBJECT(button), "enter-notify-event", G_CALLBACK(above_button), NULL);
 		g_signal_connect(G_OBJECT(button), "leave-notify-event", G_CALLBACK(out_of_button), NULL);
-		//gtk_widget_set_halign (button, GTK_ALIGN_START);
+		gtk_widget_set_halign (button, GTK_ALIGN_FILL);
 		gtk_widget_set_hexpand(button, TRUE);
 		gtk_widget_set_name (button, "account");
 		g_signal_connect(G_OBJECT(button), "clicked", G_CALLBACK(activate_main_window_default), model -> account);
 
 		grid = gtk_grid_new ();
+
+		label = gtk_label_new ("user_imag");
+		gtk_widget_set_hexpand (label, FALSE);
+		gtk_widget_set_name (label, "user_account");
+		gtk_grid_attach (GTK_GRID (grid), label, 0, 0, 1, 1);
 
 		char account_id_string [5];
 		sprintf(account_id_string, "%d", model-> account ->id);
@@ -263,14 +257,14 @@ static void show_account_list_window(struct MqttModel * model) {
 		gtk_widget_set_name (grid, account_id_string);
 
 		gtk_box_pack_start (GTK_BOX(box), GTK_WIDGET(grid), FALSE, TRUE, 1);
-		gtk_grid_attach (GTK_GRID (grid), button, 0, 0, 1, 1);
+		gtk_grid_attach (GTK_GRID (grid), button, 1, 0, 1, 1);
 		button = gtk_button_new_with_label("             ");
 		g_signal_connect(G_OBJECT(button), "enter-notify-event", G_CALLBACK(above_button), NULL);
 		g_signal_connect(G_OBJECT(button), "leave-notify-event", G_CALLBACK(out_of_button), NULL);
 		gtk_widget_set_hexpand (button, FALSE);
 		gtk_widget_set_name (button, "remove_account");
 		g_signal_connect(button, "clicked", G_CALLBACK (remove_account_button_handle), grid);
-		gtk_grid_attach (GTK_GRID (grid), button, 1, 0, 1, 1);
+		gtk_grid_attach (GTK_GRID (grid), button, 2, 0, 1, 1);
 
 		model->account++;
 	}

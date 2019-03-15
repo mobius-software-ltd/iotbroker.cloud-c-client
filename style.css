@@ -234,6 +234,15 @@ label#settings_send {
   background-size: 85%;
 }
 
+label#user_account {
+  background-image: url("./images/username.png");
+  background-color: white;
+  color: transparent;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 65%;
+}
+
 label#qos_label {
 	background-color: yellow;
 	color: black;
