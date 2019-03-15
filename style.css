@@ -97,15 +97,6 @@ button#account {
   border-image-width: 0;
 }
 
-button#account:active {
-  color: white;
-  background-color: #EEEE25;
-  background-image: url("");
-  border-width: 0;
-  border-radius: 0;
-  border-image-width: 0;
-}
-
 button#delete {
 
   background-image: url("./images/delete.png");
@@ -125,7 +116,7 @@ button#remove_account {
   background-position: center;
   border-width: 0;
   border-radius: 0;
-  border-image-width: 0;
+  border-image-width: 1;
 
 }
 
@@ -137,9 +128,53 @@ box#messages_box {
   background-color: white;
 }
 
-box#messages_box :nth-child(even) {
-  background-color: #F2F2F2;
+label#out_qos_0 {
+  color: transparent;
+  background-image: url("./images/icon_out_qos_0.png");
+  background-repeat: no-repeat;
+  background-position: top;
+  background-size: 100%;
 }
+
+label#out_qos_1 {
+  color: transparent;
+  background-image: url("./images/icon_out_qos_1.png");
+  background-repeat: no-repeat;
+  background-position: top;
+  background-size: 100%;
+}
+
+label#out_qos_2 {
+  color: transparent;
+  background-image: url("./images/icon_out_qos_2.png");
+  background-repeat: no-repeat;
+  background-position: top;
+  background-size: 100%;
+}
+label#in_qos_0 {
+  color: transparent;
+  background-image: url("./images/icon_in_qos_0.png");
+  background-repeat: no-repeat;
+  background-position: top;
+  background-size: 100%;
+}
+
+label#in_qos_1 {
+  color: transparent;
+  background-image: url("./images/icon_in_qos_1.png");
+  background-repeat: no-repeat;
+  background-position: top;
+  background-size: 100%;
+}
+
+label#in_qos_2 {
+  color: transparent;
+  background-image: url("./images/icon_in_qos_2.png");
+  background-repeat: no-repeat;
+  background-position: top;
+  background-size: 100%;
+}
+
 
 label#settings {
 
@@ -193,7 +228,9 @@ label#username {
 label#settings_send {
 
   background-image: url("./images/settings.png");
+  color: transparent;
   background-repeat: no-repeat;
+  background-position: center;
   background-size: 85%;
 }
 

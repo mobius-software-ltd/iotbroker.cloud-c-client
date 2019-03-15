@@ -57,7 +57,7 @@ static void out_of_button(GtkWidget *window, gpointer data)
 
 static void add_settings_image(GtkWidget * label, GtkWidget * grid, gint x, gint y) {
 
-	label = gtk_label_new ("           ");
+	label = gtk_label_new ("setti");
 	gtk_widget_set_hexpand (label, FALSE);
 	gtk_widget_set_name (label, "settings_send");
 	gtk_grid_attach (GTK_GRID (grid), label, x, y, 1, 1);
@@ -141,6 +141,7 @@ void add_topics_to_list_box (const char * topic_name, int qos) {
 	g_signal_connect(button, "clicked", G_CALLBACK (usubscribe_button_handle), grid);
 	gtk_widget_set_hexpand (button, FALSE);
 	gtk_grid_attach (GTK_GRID (grid), button, 2, 0, 1, 1);
+	g_object_set (grid, "margin", 10, NULL);
 
 	gtk_container_add(GTK_CONTAINER(topics_box), grid);
 	gtk_container_add(GTK_CONTAINER(topics_box), separator);
@@ -175,37 +176,52 @@ void update_messages_window (const char * content, const char * topic_name, int 
 	GtkWidget * grid = NULL;
 	GtkWidget * label = NULL;
 	char row1 [256] = {};
-	char row2 [256] = {};
-	if(is_incoming){
-		strcat(row2, "     in\n");
-	} else {
-		strcat(row2, "    out\n");
-	}
-		strcat(row1, topic_name);
-		strcat(row1, "\n");
-		strcat(row1,content);
-
-		strcat(row2, "  QOS : ");
-		char * qos_string = malloc(sizeof (char)*2);
-		sprintf(qos_string, "%d", qos);
-		strcat(row2, qos_string);
-		strcat(row2, "  ");
+	strcat(row1, "<b>");
+	strcat(row1, topic_name);
+	strcat(row1, "</b>");
+	strcat(row1, "\n");
+	strcat(row1,content);
 
 	grid = gtk_grid_new ();
-	label = gtk_label_new (row1);
+	label = gtk_label_new (NULL);
+	gtk_label_set_markup(GTK_LABEL(label), row1);
+
+	gtk_label_set_use_markup (GTK_LABEL (label), TRUE);
+	g_object_set (label, "margin", 10, NULL);
+	gtk_label_set_justify(GTK_LABEL(label), GTK_JUSTIFY_LEFT);
+	gtk_label_set_max_width_chars (GTK_LABEL (label), 40);
+	gtk_label_set_line_wrap (GTK_LABEL (label), TRUE);
+	gtk_label_set_line_wrap_mode(GTK_LABEL (label),PANGO_WRAP_WORD_CHAR);
+
 	gtk_widget_set_hexpand (label, TRUE);
 	gtk_widget_set_halign (label, GTK_ALIGN_START);
 	gtk_grid_attach (GTK_GRID (grid), label, 0, 0, 1, 1);
 
-	label = gtk_label_new (row2);
-	gtk_widget_set_name (label, "messages_qos_label");
+	label = gtk_label_new ("qosinout");
+	gtk_widget_set_vexpand (label, TRUE);
+	if(is_incoming) {
+		if(qos == 0)
+			gtk_widget_set_name (label, "in_qos_0");
+		if(qos == 1)
+			gtk_widget_set_name (label, "in_qos_1");
+		if(qos == 2)
+			gtk_widget_set_name (label, "in_qos_2");
+	} else {
+		if(qos == 0)
+			gtk_widget_set_name (label, "out_qos_0");
+		if(qos == 1)
+			gtk_widget_set_name (label, "out_qos_1");
+		if(qos == 2)
+			gtk_widget_set_name (label, "out_qos_2");
+	}
 
-	gtk_widget_set_hexpand (label, FALSE);
-	gtk_widget_set_halign (label, GTK_ALIGN_END);
+	gtk_widget_set_halign (label, GTK_ALIGN_FILL);
 	gtk_grid_attach (GTK_GRID (grid), label, 1, 0, 1, 1);
 
-
-	gtk_box_pack_start (GTK_BOX(messages_box), GTK_WIDGET(grid), FALSE, TRUE, 1);
+	GtkWidget *separator = gtk_separator_new(GTK_ORIENTATION_HORIZONTAL);
+	gtk_box_pack_start (GTK_BOX(messages_box), GTK_WIDGET(grid), FALSE, FALSE, 1);
+	gtk_box_pack_start(GTK_BOX(messages_box), separator, FALSE, FALSE, 1);
+	gtk_box_set_spacing(GTK_BOX(messages_box), 1);
 
 	gtk_widget_show_all(messages_box);
 
@@ -254,9 +270,9 @@ void activate_main_window(GtkApplication* app, enum Protocol protocol, struct Mq
 	  gtk_stack_switcher_set_stack(GTK_STACK_SWITCHER(stack_switcher), GTK_STACK(stack));
 
 	  //topics box
-	  box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 1);
+	  box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
 	  //add label topics list label
-	  label = gtk_label_new ("topics list:");
+	  label = gtk_label_new ("  topics list:");
 	  gtk_widget_set_halign (label, GTK_ALIGN_START);
 	  gtk_box_pack_start (GTK_BOX(box), GTK_WIDGET(label), FALSE, FALSE, 0);
 
@@ -267,7 +283,7 @@ void activate_main_window(GtkApplication* app, enum Protocol protocol, struct Mq
 	  gtk_container_add(GTK_CONTAINER (scrolled_window), topics_box);
 	  gtk_box_pack_start (GTK_BOX(box), GTK_WIDGET(scrolled_window), TRUE, TRUE, 0);
 	  //add add new topics label
-	  label = gtk_label_new ("add new topic:");
+	  label = gtk_label_new ("  add new topic:");
 	  gtk_widget_set_halign (label, GTK_ALIGN_START);
 	  gtk_box_pack_start (GTK_BOX(box), GTK_WIDGET(label), FALSE, FALSE, 0);
 
@@ -313,7 +329,7 @@ void activate_main_window(GtkApplication* app, enum Protocol protocol, struct Mq
 
 	  //gtk_widget_set_name (box, "white_box");
 	  //add label topics list label
-	  label = gtk_label_new ("send new message:");
+	  label = gtk_label_new ("  send new message:");
 	  gtk_widget_set_halign (label, GTK_ALIGN_START);
 	  gtk_box_pack_start (GTK_BOX(box), GTK_WIDGET(label), FALSE, FALSE, 0);
 
@@ -379,11 +395,12 @@ void activate_main_window(GtkApplication* app, enum Protocol protocol, struct Mq
       //messages box
 
 	  scrolled_window = gtk_scrolled_window_new (NULL,NULL);
+	  gtk_widget_set_name (scrolled_window, "messages_box_window");
 	  gtk_container_set_border_width (GTK_CONTAINER (scrolled_window), 0);
 	  gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (scrolled_window), GTK_POLICY_AUTOMATIC, GTK_POLICY_ALWAYS);
 
-	  box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 1);
-	  label = gtk_label_new ("messages list:");
+	  box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 5);
+	  label = gtk_label_new ("  messages list:");
 	  gtk_widget_set_halign (label, GTK_ALIGN_START);
 	  gtk_box_pack_start (GTK_BOX(box), GTK_WIDGET(label), FALSE, FALSE, 0);
 	  messages_box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 5);

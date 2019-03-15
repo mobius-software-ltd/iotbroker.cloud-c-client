@@ -264,7 +264,7 @@ static void show_account_list_window(struct MqttModel * model) {
 
 		gtk_box_pack_start (GTK_BOX(box), GTK_WIDGET(grid), FALSE, TRUE, 1);
 		gtk_grid_attach (GTK_GRID (grid), button, 0, 0, 1, 1);
-		button = gtk_button_new_with_label("       ");
+		button = gtk_button_new_with_label("             ");
 		g_signal_connect(G_OBJECT(button), "enter-notify-event", G_CALLBACK(above_button), NULL);
 		g_signal_connect(G_OBJECT(button), "leave-notify-event", G_CALLBACK(out_of_button), NULL);
 		gtk_widget_set_hexpand (button, FALSE);
@@ -288,7 +288,7 @@ static void show_account_list_window(struct MqttModel * model) {
 
 	g_signal_connect(G_OBJECT(button), "clicked", G_CALLBACK(add_new_account_handler), app);
 
-	gtk_box_pack_start (GTK_BOX(box), button, FALSE, FALSE, 1);
+	gtk_box_pack_start (GTK_BOX(box), button, FALSE, FALSE, 0);
 	gtk_container_add(GTK_CONTAINER (account_list_window), box);
 	gtk_widget_show_all (account_list_window);
 }
