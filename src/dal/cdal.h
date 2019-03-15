@@ -29,6 +29,7 @@ GdaConnection *open_db_connection (void);
 void save_changes (struct Account * account);
 void save_topic_to_db (const char * topic_name, int qos);
 void remove_topic_from_db(const char * topic_name);
+void remove_account_messages_from_db(int id);
 void save_message (const char * content, const char * topic_name, int qos, int retain, int dup, int is_incoming);
 struct MqttModel * get_accounts();
 struct MqttModel * get_topics_from_db();

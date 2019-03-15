@@ -294,6 +294,16 @@ static void remove_account(int id) {
 
 }
 
+void remove_account_messages_from_db(int id) {
+	gchar str1 [256] = {};
+	char account_id_string [3];
+	sprintf(account_id_string, "%d", id);
+	//remove messages
+	strcat(str1, "DELETE FROM message WHERE message_account=");
+	strcat(str1, account_id_string);
+	run_sql_non_select(cnc, str1);
+}
+
 
 static void remove_topic (GdaConnection *cnc, const char * topic_name)
 {

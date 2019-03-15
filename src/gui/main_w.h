@@ -22,7 +22,7 @@
 #include "../mqtt_listener.h"
 
 
-void activate_main_window(GtkApplication* application, enum Protocol protocol, struct MqttListener * listener);
+void activate_main_window(GtkApplication* application, enum Protocol protocol, struct MqttListener * listener, struct Account * account);
 void get_message(struct Publish publish);
 void subscribe_success(void);
 void update_messages_window (const char * content, const char * topic_name, int qos, int retain, int dup, int is_incoming);

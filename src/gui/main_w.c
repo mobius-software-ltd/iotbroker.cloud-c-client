@@ -40,6 +40,7 @@ static GtkWidget *main_window;
 struct MqttListener * mqtt_listener;
 struct Topic * current_topic = NULL;
 struct MqttModel * mqtt_model;
+struct Account * account;
 
 GtkWidget *topics_box;
 GtkWidget *messages_box;
@@ -148,6 +149,13 @@ static GtkWidget* find_child(GtkWidget* parent, const gchar* name)
 }
 
 static void log_out_handle () {
+	printf("remove messages from DB for id : %i \n", account->id);
+	printf("server port : %i \n", account->server_port);
+	if(account->clean_session)
+	{
+		remove_account_messages_from_db(account->id);
+	}
+
 	mqtt_listener->send_disconnect();
 	gtk_widget_destroy(main_window);
 	reload_account_list_window();
@@ -283,8 +291,9 @@ void update_messages_window (const char * content, const char * topic_name, int 
 
 }
 
-void activate_main_window(GtkApplication* app, enum Protocol protocol, struct MqttListener * listener) {
+void activate_main_window(GtkApplication* app, enum Protocol protocol, struct MqttListener * listener, struct Account * _account) {
 
+	account = _account;
 	mqtt_model = malloc (sizeof (struct MqttModel));
 	mqtt_model->save_message_pt = save_message;
 	mqtt_listener->get_pub_pt = get_message;

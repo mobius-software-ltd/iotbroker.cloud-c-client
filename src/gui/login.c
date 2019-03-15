@@ -704,5 +704,5 @@ static void connection_success() {
 		mqtt_model.save_acc_pt(account);
 		//and open common window
 		gtk_widget_hide(login_window);
-		activate_main_window(app, current_protocol, mqtt_listener);
+		activate_main_window(app, current_protocol, mqtt_listener, account);
 }

@@ -302,7 +302,7 @@ static void add_new_account_handler(GtkButton *button, gpointer user_data) {
 
 static void connection_success() {
 	gtk_widget_hide(account_list_window);
-	activate_main_window(app, current_protocol, mqtt_listener);
+	activate_main_window(app, current_protocol, mqtt_listener, account);
 }
 
 void reload_account_list_window() {
