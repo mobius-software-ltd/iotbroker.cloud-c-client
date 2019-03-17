@@ -149,16 +149,16 @@ static GtkWidget* find_child(GtkWidget* parent, const gchar* name)
 }
 
 static void log_out_handle () {
-	printf("remove messages from DB for id : %i \n", account->id);
-	printf("server port : %i \n", account->server_port);
+
 	if(account->clean_session)
 	{
 		remove_account_messages_from_db(account->id);
 	}
 
 	mqtt_listener->send_disconnect();
-	gtk_widget_destroy(main_window);
 	reload_account_list_window();
+	//gtk_widget_hide(main_window);
+	gtk_window_close(GTK_WINDOW(main_window));
 }
 
 

@@ -285,13 +285,9 @@ static void show_account_list_window(struct MqttModel * model) {
 		gtk_box_pack_start (GTK_BOX(box), button, FALSE, FALSE, 0);
 		gtk_container_add(GTK_CONTAINER (account_list_window), box);
 
-		gtk_widget_show_all (account_list_window);
-	}
-	else
-	{
-		gtk_widget_show (account_list_window);
 	}
 
+		gtk_widget_show_all (account_list_window);
 
 }
 
