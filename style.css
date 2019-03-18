@@ -2,11 +2,6 @@ grid#white_grid{
   background-color: white;
 }
 
-label#label_select_account {
-  color: white;
-  background-color: #66B2FF;
-  background-image: url("");
-}
 label#login_label {
   background-image: url("./images/background.jpg");
 }

@@ -37,6 +37,7 @@
 GtkWidget * account_list_window = NULL;
 GtkWidget * loading_window;
 GtkApplication * app;
+gboolean main_window_activated = 0;
 
 struct MqttModel * retrieve_accounts();
 static void show_account_list_window(struct MqttModel * model);
@@ -96,49 +97,53 @@ static void remove_account_button_handle (GtkWidget *widget, gpointer data) {
 
 void activate_main_window_default (GtkButton * button, struct Account * _account) {
 
-	account = _account;
-	set_account_default(account->id);
-	current_protocol = account->protocol;
+	if(!main_window_activated)
+	{
+		main_window_activated = TRUE;
+		account = _account;
+		set_account_default(account->id);
+		current_protocol = account->protocol;
 
-	mqtt_listener = malloc (sizeof (struct MqttListener));
-	mqtt_listener->cs_pt = connection_success;
+		mqtt_listener = malloc (sizeof (struct MqttListener));
+		mqtt_listener->cs_pt = connection_success;
 
-	if(current_protocol == MQTT) {
-		if (init_mqtt_client(account, mqtt_listener) != 0) {
-			printf("MQTT client: CONNECTION FAILED!!!\n");
-			//TODO WARNING WINDOW CONNECTION FAILED
-			return;
-		}
-	} else if (current_protocol == MQTT_SN){
-		if (init_mqtt_sn_client(account, mqtt_listener) != 0) {
-			printf("MQTT-SN client: CONNECTION FAILED!!!\n");
-			//TODO WARNING WINDOW CONNECTION FAILED
-			return;
-		}
+		if(current_protocol == MQTT) {
+			if (init_mqtt_client(account, mqtt_listener) != 0) {
+				printf("MQTT client: CONNECTION FAILED!!!\n");
+				//TODO WARNING WINDOW CONNECTION FAILED
+				return;
+			}
+		} else if (current_protocol == MQTT_SN){
+			if (init_mqtt_sn_client(account, mqtt_listener) != 0) {
+				printf("MQTT-SN client: CONNECTION FAILED!!!\n");
+				//TODO WARNING WINDOW CONNECTION FAILED
+				return;
+			}
 
-	} else if(current_protocol == COAP) {
-		if (init_coap_client(account, mqtt_listener) != 0) {
-			printf("COAP client: CONNECTION FAILED!!!\n");
-			//TODO WARNING WINDOW CONNECTION FAILED
-			return;
+		} else if(current_protocol == COAP) {
+			if (init_coap_client(account, mqtt_listener) != 0) {
+				printf("COAP client: CONNECTION FAILED!!!\n");
+				//TODO WARNING WINDOW CONNECTION FAILED
+				return;
+			}
+		} else if(current_protocol == AMQP) {
+			if (init_amqp_client(account, mqtt_listener) != 0) {
+				printf("AMQP client: CONNECTION FAILED!!!\n");
+				//TODO WARNING WINDOW CONNECTION FAILED
+				return;
+			}
+		} else if(current_protocol == WEBSOCKETS) {
+			if (init_mqtt_client(account, mqtt_listener) != 0) {
+				printf("MQTT-WS client: CONNECTION FAILED!!!\n");
+				//TODO WARNING WINDOW CONNECTION FAILED
+				return;
+			}
+		} else {
+			printf("Error: unsupported protocol : %i \n", current_protocol);
+			exit(1);
 		}
-	} else if(current_protocol == AMQP) {
-		if (init_amqp_client(account, mqtt_listener) != 0) {
-			printf("AMQP client: CONNECTION FAILED!!!\n");
-			//TODO WARNING WINDOW CONNECTION FAILED
-			return;
-		}
-	} else if(current_protocol == WEBSOCKETS) {
-		if (init_mqtt_client(account, mqtt_listener) != 0) {
-			printf("MQTT-WS client: CONNECTION FAILED!!!\n");
-			//TODO WARNING WINDOW CONNECTION FAILED
-			return;
-		}
-	} else {
-		printf("Error: unsupported protocol : %i \n", current_protocol);
-		exit(1);
+		mqtt_listener->send_connect(account);
 	}
-	mqtt_listener->send_connect(account);
 }
 
 void activate_loading_window (GtkApplication* _app, gpointer user_data) {
@@ -205,8 +210,8 @@ static void show_account_list_window(struct MqttModel * model) {
 		GtkWidget * box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
 		//add label
 
-		GtkWidget * label = gtk_label_new("\nPlease select account\n");
-		gtk_widget_set_name (label, "label_select_account");
+		GtkWidget * label = gtk_label_new("  select account:");
+		gtk_widget_set_halign (label, GTK_ALIGN_START);
 		gtk_box_pack_start (GTK_BOX(box), label, FALSE, FALSE, 0);
 
 		GtkWidget * button = NULL;
@@ -297,6 +302,7 @@ static void add_new_account_handler(GtkButton *button, gpointer user_data) {
 }
 
 static void connection_success() {
+	main_window_activated = FALSE;
 	gtk_widget_hide(account_list_window);
 	activate_main_window(app, current_protocol, mqtt_listener, account);
 }

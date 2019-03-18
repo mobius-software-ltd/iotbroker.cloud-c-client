@@ -156,8 +156,8 @@ static void log_out_handle () {
 	}
 
 	mqtt_listener->send_disconnect();
+	//gtk_widget_destroy(GTK_WIDGET (main_window));
 	reload_account_list_window();
-	//gtk_widget_hide(main_window);
 	gtk_window_close(GTK_WINDOW(main_window));
 }
 

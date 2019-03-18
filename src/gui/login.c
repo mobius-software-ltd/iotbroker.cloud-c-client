@@ -33,6 +33,7 @@
 
 GtkWidget * mqttWidgets[36];
 //GtkWidget * box = NULL;
+gboolean is_login_button_pressed = FALSE;
 enum Protocol current_protocol = MQTT;
 const int nWidget[] = { 0, 1, 2, 3, 4, 5 };
 static const char *PROTOCOLS_STRING[] = {"MQTT", "MQTT-SN", "COAP", "AMQP", "WEBSOCKETS"};
@@ -208,209 +209,213 @@ static void show_dialog_window(GtkWidget *widget, GdkEvent  *event, gpointer use
 
 static void login_button_handle(GtkWidget *widget, gpointer data) {
 
-	account = malloc (sizeof (struct Account));
-	GtkWidget * grid = data;
-	GtkWidget * curr_widget;
-	//Protocol
-	curr_widget = gtk_grid_get_child_at(GTK_GRID(grid), 2, 3);
-	gint chooser_index = gtk_combo_box_get_active(GTK_COMBO_BOX(curr_widget));
-	switch(chooser_index) {
-	case 0:
-		account->protocol = MQTT;
-		break;
-	case 1:
-		account->protocol = MQTT_SN;
-		break;
-	case 2:
-		account->protocol = COAP;
-		break;
-	case 3:
-		account->protocol = AMQP;
-		break;
-	case 4:
-		account->protocol = WEBSOCKETS;
-	}
-	//username
-	curr_widget = gtk_grid_get_child_at(GTK_GRID(grid), 2, 4);
-	const gchar * username = gtk_entry_get_text(GTK_ENTRY(curr_widget));
-	if(strlen(username) == 0 || strcmp("Enter User Name",username) ==0) {
-		if(current_protocol == MQTT || current_protocol == WEBSOCKETS || current_protocol == AMQP) {
-			show_warn_window(curr_widget, "Please enter user name");
-			return;
-		} else {
-			account->username = NULL;
+	if(!is_login_button_pressed)
+	{
+		is_login_button_pressed = TRUE;
+		account = malloc (sizeof (struct Account));
+		GtkWidget * grid = data;
+		GtkWidget * curr_widget;
+		//Protocol
+		curr_widget = gtk_grid_get_child_at(GTK_GRID(grid), 2, 3);
+		gint chooser_index = gtk_combo_box_get_active(GTK_COMBO_BOX(curr_widget));
+		switch(chooser_index) {
+		case 0:
+			account->protocol = MQTT;
+			break;
+		case 1:
+			account->protocol = MQTT_SN;
+			break;
+		case 2:
+			account->protocol = COAP;
+			break;
+		case 3:
+			account->protocol = AMQP;
+			break;
+		case 4:
+			account->protocol = WEBSOCKETS;
 		}
-	} else {
-		account->username = username;
-	}
-	//password
-	curr_widget = gtk_grid_get_child_at(GTK_GRID(grid), 2, 5);
-	const gchar * password = gtk_entry_get_text(GTK_ENTRY(curr_widget));
-	if(strlen(password) == 0 || strcmp("Enter Password",password) ==0) {
-		if( current_protocol == MQTT || current_protocol == WEBSOCKETS || current_protocol == AMQP) {
-			show_warn_window(curr_widget, "Please enter password");
-			return;
+		//username
+		curr_widget = gtk_grid_get_child_at(GTK_GRID(grid), 2, 4);
+		const gchar * username = gtk_entry_get_text(GTK_ENTRY(curr_widget));
+		if(strlen(username) == 0 || strcmp("Enter User Name",username) ==0) {
+			if(current_protocol == MQTT || current_protocol == WEBSOCKETS || current_protocol == AMQP) {
+				show_warn_window(curr_widget, "Please enter user name");
+				return;
+			} else {
+				account->username = NULL;
+			}
 		} else {
-			account->password = NULL;
+			account->username = username;
 		}
-	} else {
-		account->password = password;
-	}
+		//password
+		curr_widget = gtk_grid_get_child_at(GTK_GRID(grid), 2, 5);
+		const gchar * password = gtk_entry_get_text(GTK_ENTRY(curr_widget));
+		if(strlen(password) == 0 || strcmp("Enter Password",password) ==0) {
+			if( current_protocol == MQTT || current_protocol == WEBSOCKETS || current_protocol == AMQP) {
+				show_warn_window(curr_widget, "Please enter password");
+				return;
+			} else {
+				account->password = NULL;
+			}
+		} else {
+			account->password = password;
+		}
 
-	//clientID
-	curr_widget = gtk_grid_get_child_at(GTK_GRID(grid), 2, 6);
-	const gchar * client_id = gtk_entry_get_text(GTK_ENTRY(curr_widget));
-	if((strlen(client_id) == 0 || strcmp("Enter Client ID",client_id) ==0) && current_protocol != COAP) {
-		show_warn_window(curr_widget, "Please enter Client ID");
-		return;
-	}
-	else
-	{
-		account->client_id = client_id;
-	}
-	//host
-	curr_widget = gtk_grid_get_child_at(GTK_GRID(grid), 2, 7);
-	const gchar * server_host = gtk_entry_get_text(GTK_ENTRY(curr_widget));
-	if(strlen(server_host) == 0 || strcmp("Enter Server Host",server_host) ==0) {
-		show_warn_window(curr_widget, "Please enter host");
-		return;
-	}
-	else
-	{
-		account->server_host = server_host;
-	}
-	//port
-	curr_widget = gtk_grid_get_child_at(GTK_GRID(grid), 2, 8);
-	const gchar * server_port = gtk_entry_get_text(GTK_ENTRY(curr_widget));
-	if(strlen(server_port) == 0 || strcmp("Enter Server Port",server_port) ==0) {
-		show_warn_window(curr_widget, "Please enter port");
-		return;
-	} else {
-		int port = atoi(server_port);
-		if(port < 1 || port > G_MAXUINT16) {
-			show_warn_window(curr_widget, "Port must be > 0 and < 65535");
+		//clientID
+		curr_widget = gtk_grid_get_child_at(GTK_GRID(grid), 2, 6);
+		const gchar * client_id = gtk_entry_get_text(GTK_ENTRY(curr_widget));
+		if((strlen(client_id) == 0 || strcmp("Enter Client ID",client_id) ==0) && current_protocol != COAP) {
+			show_warn_window(curr_widget, "Please enter Client ID");
 			return;
 		}
 		else
-			account->server_port = port;
-	}
-	//clean session
-	curr_widget = gtk_grid_get_child_at(GTK_GRID(grid), 2, 12);
-	account->clean_session = gtk_switch_get_state(GTK_SWITCH (curr_widget));
-	//keepalive
-	curr_widget = gtk_grid_get_child_at(GTK_GRID(grid), 2, 13);
-	const gchar * keepalive_string = gtk_entry_get_text(GTK_ENTRY(curr_widget));
-	if((strlen(keepalive_string) == 0 || strcmp("Enter Keepalive",keepalive_string) ==0) && (current_protocol == MQTT || current_protocol == MQTT_SN || current_protocol == WEBSOCKETS)) {
-		show_warn_window(curr_widget, "Please enter keepalive");
-		return;
-	} else {
-		int keepalive = atoi(keepalive_string);
-		if(keepalive < 0 || keepalive > G_MAXUINT16) {
-			show_warn_window(curr_widget, "keepalive must be >= 0 and < 65535");
+		{
+			account->client_id = client_id;
+		}
+		//host
+		curr_widget = gtk_grid_get_child_at(GTK_GRID(grid), 2, 7);
+		const gchar * server_host = gtk_entry_get_text(GTK_ENTRY(curr_widget));
+		if(strlen(server_host) == 0 || strcmp("Enter Server Host",server_host) ==0) {
+			show_warn_window(curr_widget, "Please enter host");
 			return;
 		}
 		else
-			account->keep_alive = keepalive;
-	}
-	//will
-	curr_widget = gtk_grid_get_child_at(GTK_GRID(grid), 2, 14);
-	const gchar * will = gtk_entry_get_text(GTK_ENTRY(curr_widget));
-	if((strlen(will) == 0 || strcmp("Enter Will",will) ==0)) {
-		account->will = NULL;
-	}
-	else {
-		account->will = will;
-	}
-	//will topic
-	curr_widget = gtk_grid_get_child_at(GTK_GRID(grid), 2, 15);
-	const gchar * will_topic = gtk_entry_get_text(GTK_ENTRY(curr_widget));
-	if((strlen(will_topic) == 0 || strcmp("Enter Will topic",will_topic) ==0)) {
-		account->will_topic = NULL;
-	}
-	else {
-		account->will_topic = will_topic;
-	}
-
-	if((account->will == NULL && account->will_topic != NULL) || (account->will != NULL && account->will_topic == NULL)) {
-		show_warn_window(curr_widget, "Will and will topic both MUST be present or absent");
-		return;
-	}
-	//Retain
-	curr_widget = gtk_grid_get_child_at(GTK_GRID(grid), 2, 16);
-	account->is_retain = gtk_switch_get_state(GTK_SWITCH (curr_widget));
-	//QoS
-	curr_widget = gtk_grid_get_child_at(GTK_GRID(grid), 2, 17);
-	account->qos = gtk_spin_button_get_value(GTK_SPIN_BUTTON (curr_widget));
-	account->is_default = 1;
-	//secure enabled
-	curr_widget = gtk_grid_get_child_at(GTK_GRID(grid), 2, 20);
-	account->is_secure = gtk_switch_get_state(GTK_SWITCH (curr_widget));
-	//certificate
-	curr_widget = gtk_grid_get_child_at(GTK_GRID(grid), 2, 21);
-	const gchar * cert = gtk_entry_get_text(GTK_ENTRY(curr_widget));
-	if((strlen(cert) == 0 || strcmp("Certificate",cert) ==0))
-		account->certificate = NULL;
-	else
-		account->certificate = cert;
-	//password
-	curr_widget = gtk_grid_get_child_at(GTK_GRID(grid), 2, 22);
-	const gchar * cert_pass = gtk_entry_get_text(GTK_ENTRY(curr_widget));
-	if((strlen(cert_pass) == 0 || strcmp("Password",cert_pass) ==0))
-		account->certificate_password = NULL;
-	else
-		account->certificate_password = cert_pass;
-
-	mqtt_listener = malloc (sizeof (struct MqttListener));
-	mqtt_listener->cs_pt = connection_success;
-
-
-	switch (current_protocol) {
-		case MQTT : {
-			if (init_mqtt_client(account, mqtt_listener) != 0) {
-				//TODO WARNING WINDOW CONNECTION FAILED
-				printf("MQTT client : connection failed!!!\n");
+		{
+			account->server_host = server_host;
+		}
+		//port
+		curr_widget = gtk_grid_get_child_at(GTK_GRID(grid), 2, 8);
+		const gchar * server_port = gtk_entry_get_text(GTK_ENTRY(curr_widget));
+		if(strlen(server_port) == 0 || strcmp("Enter Server Port",server_port) ==0) {
+			show_warn_window(curr_widget, "Please enter port");
+			return;
+		} else {
+			int port = atoi(server_port);
+			if(port < 1 || port > G_MAXUINT16) {
+				show_warn_window(curr_widget, "Port must be > 0 and < 65535");
 				return;
 			}
-			break;
+			else
+				account->server_port = port;
 		}
-		case MQTT_SN : {
-			if (init_mqtt_sn_client(account, mqtt_listener) != 0) {
-				//TODO WARNING WINDOW CONNECTION FAILED
-				printf("MQTT-SN client : connection failed!!!\n");
+		//clean session
+		curr_widget = gtk_grid_get_child_at(GTK_GRID(grid), 2, 12);
+		account->clean_session = gtk_switch_get_state(GTK_SWITCH (curr_widget));
+		//keepalive
+		curr_widget = gtk_grid_get_child_at(GTK_GRID(grid), 2, 13);
+		const gchar * keepalive_string = gtk_entry_get_text(GTK_ENTRY(curr_widget));
+		if((strlen(keepalive_string) == 0 || strcmp("Enter Keepalive",keepalive_string) ==0) && (current_protocol == MQTT || current_protocol == MQTT_SN || current_protocol == WEBSOCKETS)) {
+			show_warn_window(curr_widget, "Please enter keepalive");
+			return;
+		} else {
+			int keepalive = atoi(keepalive_string);
+			if(keepalive < 0 || keepalive > G_MAXUINT16) {
+				show_warn_window(curr_widget, "keepalive must be >= 0 and < 65535");
 				return;
 			}
-			break;
+			else
+				account->keep_alive = keepalive;
 		}
-		case COAP: {
-			if (init_coap_client(account, mqtt_listener) != 0) {
-				printf("COAP client : connection failed!!!\n");
-			    return;
-			}
+		//will
+		curr_widget = gtk_grid_get_child_at(GTK_GRID(grid), 2, 14);
+		const gchar * will = gtk_entry_get_text(GTK_ENTRY(curr_widget));
+		if((strlen(will) == 0 || strcmp("Enter Will",will) ==0)) {
+			account->will = NULL;
+		}
+		else {
+			account->will = will;
+		}
+		//will topic
+		curr_widget = gtk_grid_get_child_at(GTK_GRID(grid), 2, 15);
+		const gchar * will_topic = gtk_entry_get_text(GTK_ENTRY(curr_widget));
+		if((strlen(will_topic) == 0 || strcmp("Enter Will topic",will_topic) ==0)) {
+			account->will_topic = NULL;
+		}
+		else {
+			account->will_topic = will_topic;
+		}
 
-			break;
+		if((account->will == NULL && account->will_topic != NULL) || (account->will != NULL && account->will_topic == NULL)) {
+			show_warn_window(curr_widget, "Will and will topic both MUST be present or absent");
+			return;
 		}
-		case AMQP : {
-			if (init_amqp_client(account, mqtt_listener) != 0) {
-				printf("AMQP client : connection failed!!!\n");
-				return;
-			}
+		//Retain
+		curr_widget = gtk_grid_get_child_at(GTK_GRID(grid), 2, 16);
+		account->is_retain = gtk_switch_get_state(GTK_SWITCH (curr_widget));
+		//QoS
+		curr_widget = gtk_grid_get_child_at(GTK_GRID(grid), 2, 17);
+		account->qos = gtk_spin_button_get_value(GTK_SPIN_BUTTON (curr_widget));
+		account->is_default = 1;
+		//secure enabled
+		curr_widget = gtk_grid_get_child_at(GTK_GRID(grid), 2, 20);
+		account->is_secure = gtk_switch_get_state(GTK_SWITCH (curr_widget));
+		//certificate
+		curr_widget = gtk_grid_get_child_at(GTK_GRID(grid), 2, 21);
+		const gchar * cert = gtk_entry_get_text(GTK_ENTRY(curr_widget));
+		if((strlen(cert) == 0 || strcmp("Certificate",cert) ==0))
+			account->certificate = NULL;
+		else
+			account->certificate = cert;
+		//password
+		curr_widget = gtk_grid_get_child_at(GTK_GRID(grid), 2, 22);
+		const gchar * cert_pass = gtk_entry_get_text(GTK_ENTRY(curr_widget));
+		if((strlen(cert_pass) == 0 || strcmp("Password",cert_pass) ==0))
+			account->certificate_password = NULL;
+		else
+			account->certificate_password = cert_pass;
 
-			break;
-		}
-		case WEBSOCKETS : {
-			if (init_mqtt_client(account, mqtt_listener) != 0) {
-				//TODO WARNING WINDOW CONNECTION FAILED
-				printf("MQTT-WS client : connection failed!!!\n");
-				return;
+		mqtt_listener = malloc (sizeof (struct MqttListener));
+		mqtt_listener->cs_pt = connection_success;
+
+
+		switch (current_protocol) {
+			case MQTT : {
+				if (init_mqtt_client(account, mqtt_listener) != 0) {
+					//TODO WARNING WINDOW CONNECTION FAILED
+					printf("MQTT client : connection failed!!!\n");
+					return;
+				}
+				break;
 			}
-			break;
+			case MQTT_SN : {
+				if (init_mqtt_sn_client(account, mqtt_listener) != 0) {
+					//TODO WARNING WINDOW CONNECTION FAILED
+					printf("MQTT-SN client : connection failed!!!\n");
+					return;
+				}
+				break;
+			}
+			case COAP: {
+				if (init_coap_client(account, mqtt_listener) != 0) {
+					printf("COAP client : connection failed!!!\n");
+					return;
+				}
+
+				break;
+			}
+			case AMQP : {
+				if (init_amqp_client(account, mqtt_listener) != 0) {
+					printf("AMQP client : connection failed!!!\n");
+					return;
+				}
+
+				break;
+			}
+			case WEBSOCKETS : {
+				if (init_mqtt_client(account, mqtt_listener) != 0) {
+					//TODO WARNING WINDOW CONNECTION FAILED
+					printf("MQTT-WS client : connection failed!!!\n");
+					return;
+				}
+				break;
+			}
+			default : {
+				printf("Unsupported protocol : %i \n", current_protocol);
+				exit(1);
+			}
 		}
-		default : {
-			printf("Unsupported protocol : %i \n", current_protocol);
-			exit(1);
-		}
+		mqtt_listener->send_connect(account);
 	}
-	mqtt_listener->send_connect(account);
 }
 
 static void choose_box(GtkWidget *widget, GtkWidget *box) {
@@ -698,6 +703,7 @@ void activate_login_window(GtkApplication* application) {
 }
 
 static void connection_success() {
+		is_login_button_pressed = FALSE;
 		struct MqttModel mqtt_model;
 		mqtt_model.account = account;
 		mqtt_model.save_acc_pt = save_changes;
