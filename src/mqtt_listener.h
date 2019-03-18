@@ -24,6 +24,7 @@
 #include "account.h"
 
 typedef void (*ConnectionSuccessful)(void);
+typedef void (*ConnectionUnsuccessful)(int cause);
 typedef void (*SubscribeSuccessful)(void);
 typedef void (*GetPublish)(const char * content, const char * topic_name, int qos, int retain, int dup);
 typedef void (*SendConnect)(struct Account * account);
@@ -35,6 +36,7 @@ typedef void (*SendMessage)(const char * content, const char * topic_name, int q
 struct MqttListener {
 
 	ConnectionSuccessful  cs_pt;
+	ConnectionUnsuccessful  cu_pt;
 	SubscribeSuccessful  subs_pt;
 	GetPublish get_pub_pt;
 	SendConnect send_connect;

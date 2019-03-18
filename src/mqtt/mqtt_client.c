@@ -84,9 +84,7 @@ int init_mqtt_client(struct Account * acc, struct MqttListener * listener) {
 	int is_successful = open_lws_net_connection(acc->server_host, acc->server_port, tcp_listener, acc->is_secure, acc->certificate, acc->certificate_password, acc->protocol);
 
 	if (is_successful >= 0)
-		printf("MQTT client successfully connected with transport %s\n", acc->protocol == MQTT ? "TCP" : "WEBSOCKETS" );
-	else
-		printf("MQTT client NOT connected with transport %s\n", acc->protocol == MQTT ? "TCP" : "WEBSOCKETS" );
+		printf("TCP connection established");
 	return is_successful;
 
 }
@@ -291,7 +289,8 @@ void process_rx(char * data, int length) {
 				start_message_timer();
 			} else {
 				//connection unsuccessful
-				printf("MQTT client have got CONNACK with error : %i \n", ca->return_code);
+				mqtt_listener->cu_pt(ca->return_code);
+				//lws_close_tcp_connection();
 			}
 
 			break;

@@ -196,7 +196,7 @@ static void show_account_list_window(struct MqttModel * model) {
 
 	GtkWidget *grid;
 	GtkWidget * scrolled_window;
-	if(account_list_window==NULL) {
+	//if(account_list_window==NULL) {
 		account_list_window = gtk_application_window_new (app);
 		gtk_window_set_title (GTK_WINDOW (account_list_window), "Accounts' list");
 		gtk_window_set_resizable (GTK_WINDOW (account_list_window), FALSE);
@@ -290,7 +290,7 @@ static void show_account_list_window(struct MqttModel * model) {
 		gtk_box_pack_start (GTK_BOX(box), button, FALSE, FALSE, 0);
 		gtk_container_add(GTK_CONTAINER (account_list_window), box);
 
-	}
+	//}
 
 		gtk_widget_show_all (account_list_window);
 

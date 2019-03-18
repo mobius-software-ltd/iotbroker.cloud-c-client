@@ -34,6 +34,7 @@
 void add_topic_button_handle();
 void send_message_button_handle();
 void get_message(const char * content, const char * topic_name, int qos, int retain, int dup);
+void remove_topic_from_list_box(const gchar* name);
 
 static enum Protocol current_protocol;
 static GtkWidget *main_window;
@@ -171,6 +172,8 @@ static void usubscribe_button_handle (GtkWidget *widget, gpointer data){
 }
 
 void add_topics_to_list_box (const char * topic_name, int qos) {
+
+	remove_topic_from_list_box(topic_name);
 
 	GtkWidget * button;
 	GtkWidget * grid;
