@@ -207,9 +207,12 @@ int open_lws_net_connection(const char * host, int port, struct TcpListener * cl
 			close(fd);
 			//we can add here protocol name MQTT,COAP, etc.
 			info.alpn = "";
+			info.ssl_private_key_password = cert_password;
+			//possibly it's libwebsocket bug client_ssl_private_key_password not working
+			info.client_ssl_private_key_password = cert_password;
 			info.client_ssl_private_key_filepath = filename;
 			info.client_ssl_cert_filepath = filename;
-			info.client_ssl_private_key_password = cert_password;
+
 		}
 		else
 			printf("Certificate is NULL\n");
