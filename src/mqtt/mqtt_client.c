@@ -51,12 +51,14 @@ void send_unsubscribe(const char * topic_name);
 void send_disconnect(void);
 void send_publish(const char * content, const char * topic_name, int qos, int retain, int dup);
 void mqtt_data_received(char * buf, int readable_bytes);
+void fin_mqtt_client(void);
 
 static struct MqttListener * mqtt_listener = NULL;
 static struct Account * account = NULL;
 static int current_packet_number = 0;
 struct TcpListener * tcp_listener;
 unsigned int delay_in_seconds = 10;
+int connection_established = 0;
 
 void encode_and_fire(struct Message * message) {
 
@@ -83,10 +85,9 @@ int init_mqtt_client(struct Account * acc, struct MqttListener * listener) {
 	mqtt_listener->send_unsubscribe = send_unsubscribe;
 	tcp_listener = malloc (sizeof (struct TcpListener));
 	tcp_listener->prd_pt = mqtt_data_received;
+	tcp_listener->stop_pt = fin_mqtt_client;
 	int is_successful = open_lws_net_connection(acc->server_host, acc->server_port, tcp_listener, acc->is_secure, acc->certificate, acc->certificate_password, acc->protocol);
 
-	if (is_successful >= 0)
-		printf("TCP connection established");
 	return is_successful;
 
 }
@@ -291,6 +292,7 @@ void process_rx(char * data, int length) {
 				mqtt_listener->cs_pt();
 				start_mqtt_ping_timer((unsigned int)delay_in_seconds);
 				start_message_timer();
+				connection_established = 1;
 			} else {
 				//connection unsuccessful
 				mqtt_listener->cu_pt(ca->return_code);
@@ -405,7 +407,13 @@ void process_rx(char * data, int length) {
 }
 
 void fin_mqtt_client() {
-
+	if(connection_established == 0) {
+		mqtt_listener->cu_pt(-1);
+		stop_connect_timer();
+		stop_ping_timer();
+		stop_message_timer();
+	}
 }
+
 
 

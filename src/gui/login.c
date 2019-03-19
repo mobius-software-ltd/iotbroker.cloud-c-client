@@ -710,9 +710,18 @@ static void connection_unsuccessful(int cause) {
 	char dst[256]="Connection unsuccessful for ";
 	strcat(dst, PROTOCOLS_STRING[current_protocol]);
 	strcat(dst, " client\n");
-	strcat(dst, "Error code : ");
-	char str[2];
-	sprintf(str, "%d", cause);
-	strcat(dst, str);
+
+	if(cause<0)
+	{
+		strcat(dst, "Server abort connection");
+	}
+	else
+	{
+		strcat(dst, "Error code : ");
+		char str[50];
+		sprintf(str, "%d", cause);
+		strcat(dst, str);
+	}
+
 	show_error(dst);
 }

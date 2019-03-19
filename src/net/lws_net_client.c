@@ -136,6 +136,11 @@ static int callback_minimal_broker(struct lws *wsi, enum lws_callback_reasons re
 	}
 		break;
 
+	case LWS_CALLBACK_RAW_CLOSE: {
+		tcp_listener->stop_pt();
+		interrupted = 1;
+	}
+	break;
 	case LWS_CALLBACK_CLIENT_WRITEABLE: {
 		int s_len = strlen((char *)pending_data);
 		lws_write(vhd->client_wsi, pending_data, s_len, LWS_WRITE_TEXT);

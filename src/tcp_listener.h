@@ -22,10 +22,12 @@
 #define TCP_LISTENER_H_
 
 typedef void (*ProcessResponseData)(char * data, int length);
+typedef void (*StopSocket)(void);
 
 struct TcpListener {
 
 	ProcessResponseData  prd_pt;
+	StopSocket stop_pt;
 };
 
 #endif /* TCP_LISTENER_H_ */
