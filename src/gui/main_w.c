@@ -242,7 +242,7 @@ void update_messages_window (const char * content, const char * topic_name, int 
 
 	GtkWidget * grid = NULL;
 	GtkWidget * label = NULL;
-	char row1 [256] = {};
+	char row1 [1600] = {};
 	strcat(row1, "<b>");
 	strcat(row1, topic_name);
 	strcat(row1, "</b>");

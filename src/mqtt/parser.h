@@ -26,5 +26,6 @@
 int get_length(struct Message * message);
 char * encode(struct Message * message, int lenght);
 struct Message * decode(char * buf);
+struct LengthDetails decode_remaining_length(char buf[]);
 
 #endif /* MQTT_PARSER_H_ */

@@ -105,8 +105,7 @@ int get_length(struct Message * message) {
 
 char * encode(struct Message * message, int length) {
 
-	char * buf = NULL;
-	buf = malloc(sizeof(char) * (length+2));
+	char * buf = malloc(sizeof(char) * (length+5));
 	int i = 0;
 	unsigned short string_length = 0;
 	switch (message->message_type) {
@@ -727,13 +726,13 @@ struct LengthDetails decode_remaining_length(char buf[]) {
 			return length_details;
 		}
 
-		enc = buf[i];
+		enc = buf[i++];
 		length += (enc & 0x7f) * multiplier;
 		multiplier *= 128;
 		bytes_used++;
 	} while ((enc & 0x80) != 0);
 	length_details.bytes_used = bytes_used;
-	length_details.length = length+2;
+	length_details.length = length+1+bytes_used;
 
 	return length_details;
 

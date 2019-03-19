@@ -21,6 +21,7 @@
 #include <stdio.h>
 #include "../net/lws_net_client.h"
 #include "../account.h"
+#include "../helpers.h"
 #include "../tcp_listener.h"
 #include "../mqtt_listener.h"
 #include "../gui/main_w.h"
@@ -61,8 +62,9 @@ void encode_and_fire(struct Message * message) {
 
 	if(account->protocol == MQTT) {
 		int length = get_length(message);
-		int total_length = length + 2;
 		char * buf = encode(message, length);
+		struct LengthDetails ld = decode_remaining_length(buf);
+		int total_length = ld.length;
 		raw_fire(buf,total_length);
 	} else {
 		char * s = ws_encode(message);
@@ -253,7 +255,9 @@ void send_ping() {
 
 void mqtt_data_received(char * buf, int readable_bytes) {
 	int i = 0;
-	int length = buf[1]+2;
+
+	struct LengthDetails ld = decode_remaining_length(buf);
+	int length = ld.length;
 	if(length < readable_bytes && account->protocol == MQTT) {
 		do {
 			char * next_bytes = malloc(length * sizeof(char));
