@@ -366,21 +366,21 @@ static void login_button_handle(GtkWidget *widget, gpointer data) {
 		switch (current_protocol) {
 			case MQTT : {
 				if (init_mqtt_client(account, mqtt_listener) != 0) {
-					show_error("TCP connection failed! \n Please check host/port");
+					show_error("TCP connection failed! \n Please check host/port/cert etc.");
 					return;
 				}
 				break;
 			}
 			case MQTT_SN : {
 				if (init_mqtt_sn_client(account, mqtt_listener) != 0) {
-					show_error("UDP connection failed! \n Please check host/port");
+					show_error("UDP connection failed! \n Please check host/port/cert etc.");
 					return;
 				}
 				break;
 			}
 			case COAP: {
 				if (init_coap_client(account, mqtt_listener) != 0) {
-					show_error("UDP connection failed! \n Please check host/port");
+					show_error("UDP connection failed! \n Please check host/port/cert etc.");
 					return;
 				}
 
@@ -388,7 +388,7 @@ static void login_button_handle(GtkWidget *widget, gpointer data) {
 			}
 			case AMQP : {
 				if (init_amqp_client(account, mqtt_listener) != 0) {
-					show_error("TCP connection failed! \n Please check host/port");
+					show_error("TCP connection failed! \n Please check host/port/cert etc.");
 					return;
 				}
 
@@ -396,7 +396,7 @@ static void login_button_handle(GtkWidget *widget, gpointer data) {
 			}
 			case WEBSOCKETS : {
 				if (init_mqtt_client(account, mqtt_listener) != 0) {
-					show_error("TCP connection failed! \n Please check host/port");
+					show_error("TCP connection failed! \n Please check host/port/cert etc.");
 					return;
 				}
 				break;

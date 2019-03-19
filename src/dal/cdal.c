@@ -471,7 +471,7 @@ struct MqttModel * get_accounts_from_db (GdaConnection *cnc) {
                 g_error ("Could not get the contents of the 'account' table: %s\n",
                          error && error->message ? error->message : "No detail");
     gint rows = gda_data_model_get_n_rows(data_model);
-    gda_data_model_dump (data_model, stdout);
+    //gda_data_model_dump (data_model, stdout);
     if(rows < 1) {
     	g_object_unref (data_model);
     	return NULL;

@@ -153,15 +153,23 @@ static int start_client(char *remote_address, int port, const char * cert) {
 		if (!SSL_CTX_use_certificate_file(ctx, filename, SSL_FILETYPE_PEM))
 			printf("\nERROR: no certificate found!");
 
-		if (!SSL_CTX_use_PrivateKey_file(ctx, filename, SSL_FILETYPE_PEM))
-			printf("\nERROR: no private key found!");
-
 		if(cert_password != NULL) {
 			SSL_CTX_set_default_passwd_cb(ctx, passwd_cb);
 		}
 
+		if (!SSL_CTX_use_PrivateKey_file(ctx, filename, SSL_FILETYPE_PEM))
+		{
+			printf("\nERROR: no private key found!");
+			return -1;
+		}
+
+
+
 		if (!SSL_CTX_check_private_key (ctx))
+		{
 			printf("\nERROR: invalid private key!");
+			return -1;
+		}
 	}
 
 	SSL_CTX_set_verify_depth (ctx, 2);

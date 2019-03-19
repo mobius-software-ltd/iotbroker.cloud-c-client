@@ -37,7 +37,7 @@
 GtkWidget * account_list_window = NULL;
 GtkWidget * loading_window;
 GtkApplication * app;
-gboolean main_window_activated = 0;
+gboolean main_window_activated = FALSE;
 
 struct MqttModel * retrieve_accounts();
 static void show_account_list_window(struct MqttModel * model);
@@ -61,6 +61,15 @@ static void show_app_window(){
 		show_account_list_window(model);
 	}
 }
+
+static void show_error(const gchar * error_message) {
+  main_window_activated = FALSE;
+  GtkWidget * dialog = gtk_message_dialog_new(GTK_WINDOW (account_list_window), GTK_DIALOG_DESTROY_WITH_PARENT, GTK_MESSAGE_ERROR, GTK_BUTTONS_OK, error_message);
+  gtk_window_set_title(GTK_WINDOW(dialog), "Error");
+  gtk_dialog_run(GTK_DIALOG(dialog));
+  gtk_widget_destroy(dialog);
+}
+
 
 static gboolean fill (gpointer user_data)
 {
@@ -109,33 +118,28 @@ void activate_main_window_default (GtkButton * button, struct Account * _account
 
 		if(current_protocol == MQTT) {
 			if (init_mqtt_client(account, mqtt_listener) != 0) {
-				printf("MQTT client: CONNECTION FAILED!!!\n");
-				//TODO WARNING WINDOW CONNECTION FAILED
+				show_error("TCP connection failed! \n Please check host/port/cert etc.");
 				return;
 			}
 		} else if (current_protocol == MQTT_SN){
 			if (init_mqtt_sn_client(account, mqtt_listener) != 0) {
-				printf("MQTT-SN client: CONNECTION FAILED!!!\n");
-				//TODO WARNING WINDOW CONNECTION FAILED
+				show_error("UDP connection failed! \n Please check host/port/cert etc.");
 				return;
 			}
 
 		} else if(current_protocol == COAP) {
 			if (init_coap_client(account, mqtt_listener) != 0) {
-				printf("COAP client: CONNECTION FAILED!!!\n");
-				//TODO WARNING WINDOW CONNECTION FAILED
+				show_error("UDP connection failed! \n Please check host/port/cert etc.");
 				return;
 			}
 		} else if(current_protocol == AMQP) {
 			if (init_amqp_client(account, mqtt_listener) != 0) {
-				printf("AMQP client: CONNECTION FAILED!!!\n");
-				//TODO WARNING WINDOW CONNECTION FAILED
+				show_error("TCP connection failed! \n Please check host/port/cert etc.");
 				return;
 			}
 		} else if(current_protocol == WEBSOCKETS) {
 			if (init_mqtt_client(account, mqtt_listener) != 0) {
-				printf("MQTT-WS client: CONNECTION FAILED!!!\n");
-				//TODO WARNING WINDOW CONNECTION FAILED
+				show_error("TCP connection failed! \n Please check host/port/cert etc.");
 				return;
 			}
 		} else {
