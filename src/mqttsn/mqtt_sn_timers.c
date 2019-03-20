@@ -19,31 +19,30 @@
 */
 
 #include <time.h>
+#include <glib.h>
 #include <unistd.h>
 #include <pthread.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include "../net/tcp_client.h"
-#include "../map/map.h"
 #include "../mqttsn/mqtt_sn_client.h"
 #include "../mqttsn/packets/sn_subscribe.h"
 #include "../mqttsn/packets/sn_unsubscribe.h"
 #include "../mqttsn/packets/sn_message.h"
 #include "../mqttsn/packets/sn_publish.h"
 
-//static int got_conack = 0;
+
 static pthread_t pinger;
 static pthread_t messager;
 static pthread_t connecter;
 static unsigned int delay_in_seconds = 10;
-//int stop_ping = 0;
 
-static map_void_t messages_map;
+
+static GHashTable *messages_map = NULL;
 //<topic_name,topic_id>
-static map_int_t topic_name_map;
+static GHashTable *topic_name_map = NULL;
 //<topic_id,topic_name>
-static map_str_t reverse_topic_name_map;
-
+static GHashTable *reverse_topic_name_map = NULL;
 
 static void *sn_ping_task(void *arg)
 {
@@ -60,14 +59,10 @@ static void *connect_task(void *arg)
     for(int i = 0; i < 5; i++)
     {
         sleep(5);
-        const char *key;
-        map_iter_t iter = map_iter(&messages_map);
-
-        while ((key = map_next(&messages_map, &iter))) {
-        	struct SnMessage * sn_message = malloc(sizeof(struct SnMessage *));
-            sn_message = * map_get(&messages_map, key);
-            sn_encode_and_fire(sn_message);
-        }
+        int key = 0;
+        gpointer value = g_hash_table_lookup(messages_map, &key);
+        if(value != NULL)
+			sn_encode_and_fire((struct SnMessage *)value);
     }
     return 0;
 }
@@ -77,20 +72,20 @@ static void *message_resend_task(void *arg)
     for(;;)
     {
         sleep(5);
-        const char *key;
-        map_iter_t iter = map_iter(&m);
+        GHashTableIter iter;
+        gpointer key, value;
 
-        while ((key = map_next(&messages_map, &iter))) {
-        	struct SnMessage * sn_message = malloc(sizeof(struct SnMessage *));
-            sn_message = * map_get(&messages_map, key);
-            enum SnMessageType type = sn_message->message_type;
-            if(type == SN_PUBLISH) {
-        	   struct SnPublish * p = (struct SnPublish*) sn_message->packet;
-        	   if(p->topic.id==0)
-        		   continue;
-           	}
-
-           sn_encode_and_fire(sn_message);
+        g_hash_table_iter_init (&iter, messages_map);
+        while (g_hash_table_iter_next (&iter, &key, &value))
+        {
+        	struct SnMessage * sn_message = (struct SnMessage *)value;
+        	enum SnMessageType type = sn_message->message_type;
+			if(type == SN_PUBLISH) {
+			   struct SnPublish * p = (struct SnPublish*) sn_message->packet;
+			   if(p->topic.id==0)
+				   continue;
+			}
+			 sn_encode_and_fire(sn_message);
         }
     }
     return 0;
@@ -98,7 +93,7 @@ static void *message_resend_task(void *arg)
 
 void sn_start_connect_timer() {
 
-	map_init(&messages_map);
+	messages_map = g_hash_table_new (g_int_hash, g_int_equal);
 
 	long t = 10;
 	int rc = pthread_create(&connecter, NULL, connect_task, (void *)t);
@@ -112,9 +107,9 @@ void sn_start_connect_timer() {
 
 void start_mqtt_sn_ping_timer(unsigned int delay) {
 
-	map_init(&messages_map);
-	map_init(&topic_name_map);
-	map_init(&reverse_topic_name_map);
+
+	topic_name_map = g_hash_table_new (g_str_hash, g_str_equal);
+	reverse_topic_name_map = g_hash_table_new (g_int_hash, g_int_equal);
 	delay_in_seconds = delay;
 
 	long t = 11;
@@ -142,9 +137,9 @@ void sn_stop_connect_timer() {
 }
 
 void sn_stop_ping_timer() {
-	map_deinit(&messages_map);
-	map_deinit(&topic_name_map);
-	map_deinit(&reverse_topic_name_map);
+	g_hash_table_destroy (messages_map);
+	g_hash_table_destroy (topic_name_map);
+	g_hash_table_destroy (reverse_topic_name_map);
 	pthread_cancel(pinger);
 }
 
@@ -181,77 +176,65 @@ void sn_add_message_in_map(struct SnMessage * sn_message) {
 			break;
 	}
 
-	char str[12];
-	sprintf(str, "%d", packet_id);
-	map_set(&messages_map, str, sn_message);
+	int* packet_id_int = (int*)malloc(sizeof(int));
+	packet_id_int[0]=packet_id;
+	g_hash_table_insert (messages_map, packet_id_int, sn_message);
+
 }
 
 void sn_add_topic_id_in_map(const char * topic_name, unsigned short topic_id) {
-	map_set(&topic_name_map, (char *)topic_name, topic_id);
+
+	int* topic_id_int = (int*)malloc(sizeof(int));
+	topic_id_int[0]=topic_id;
+	g_hash_table_insert (topic_name_map, (char*)topic_name, topic_id_int);
+
 }
 
 void sn_add_topic_name_in_map(unsigned short topic_id, const char * topic_name) {
-	char str[12];
-	sprintf(str, "%d", topic_id);
-	map_set(&reverse_topic_name_map, str, (char *)topic_name);
+
+	int topic_id_int = topic_id;
+	g_hash_table_insert (reverse_topic_name_map, &topic_id_int, (char*)topic_name);
+
 }
 
-struct SnMessage * sn_get_message_from_map(unsigned short packet_id){
+struct SnMessage * sn_get_message_from_map(unsigned short packet_id) {
 
-	char str[12];
-	sprintf(str, "%d", packet_id);
-	const char *key;
-	map_iter_t iter = map_iter(&messages_map);
+	gpointer value = g_hash_table_lookup(messages_map, &packet_id);
+	if(value == NULL)
+		return NULL;
+	else
+		return (struct SnMessage *)value;
 
-	struct SnMessage * message = malloc(sizeof(struct SnMessage *));
-	while ((key = map_next(&messages_map, &iter))) {
-		 message = *map_get(&messages_map, key);
-		 if(strcmp(key,str)==0) {
-			 return message;
-		 }
-	}
-
-	return NULL;
 }
 
 unsigned short sn_get_topic_id_from_map(const char * topic_name) {
 
-	const char *key;
-	map_iter_t iter = map_iter(&messages_map);
-
-	unsigned short topic_id = 0;
-	while ((key = map_next(&topic_name_map, &iter))) {
-		topic_id = *map_get(&topic_name_map, key);
-		 if(strcmp(key,topic_name)==0) {
-			 return topic_id;
-		 }
+	gpointer value = g_hash_table_lookup(topic_name_map, topic_name);
+	if(value == NULL)
+	{
+		return 0;
 	}
-	return 0;
+	else
+	{
+		return *(int*)value;
+	}
 }
 
 char * sn_get_topic_name_from_map(unsigned short topic_id) {
 
-	char str[12];
-		sprintf(str, "%d", topic_id);
-		const char *key;
-		map_iter_t iter = map_iter(&messages_map);
-
-		char * topic_name = malloc(sizeof(topic_name));
-		while ((key = map_next(&reverse_topic_name_map, &iter))) {
-			topic_name = *map_get(&reverse_topic_name_map, key);
-			 if(strcmp(key,str)==0) {
-				 return topic_name;
-			 }
-		}
-
+	int topic_id_int = topic_id;
+	gpointer value = g_hash_table_lookup(reverse_topic_name_map, &topic_id_int);
+	if(value != NULL)
+		return (char *)value;
+	else
 		return NULL;
 }
 
 void sn_remove_message_from_map (unsigned short packet_id) {
-	char str[12];
-	sprintf(str, "%d", packet_id);
-	const char *key = str;
-	map_remove(&messages_map, key);
+
+	int* packet_id_int = (int*)malloc(sizeof(int));
+	packet_id_int[0]=packet_id;
+	g_hash_table_remove(messages_map, packet_id_int);
 }
 
 void sn_stop_all_timers() {

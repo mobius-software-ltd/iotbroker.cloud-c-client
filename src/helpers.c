@@ -76,8 +76,8 @@ int add_short(char * buf, unsigned short s) {
 	return 2;
 }
 
-unsigned short get_short(char* array, int offset) {
-	return (short) (((short) array[offset]) << 8) | array[offset + 1];
+short get_short(char* array, int offset) {
+	return (short)((array[offset]<<8) | ((array[offset+1])& 0xff));
 }
 
 int get_int(char* array, int offset) {

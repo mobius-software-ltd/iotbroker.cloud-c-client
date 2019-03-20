@@ -505,12 +505,22 @@ void process_sn_rx(char * data, int length) {
 	        	struct SnSubscribe * s = (struct SnSubscribe*) sn_message->packet;
 	        	if(sa->code == SN_ACCEPTED) {
 	        		//store in maps <topic_name, tipic_id> and viceversa
-	        		sn_add_topic_id_in_map(s->topic->value,sa->topic_id);
-	        		sn_add_topic_name_in_map(sa->topic_id,s->topic->value);
 
-	        		add_topics_to_list_box(s->topic->value, s->topic->qos);
-	        		save_topic_to_db(s->topic->value, s->topic->qos);
-	        		sn_remove_message_from_map(sa->message_id);
+	        		char * topic_name = sn_get_topic_name_from_map(sa->topic_id);
+	        		if(topic_name == NULL)
+	        		{
+						sn_add_topic_id_in_map(s->topic->value,sa->topic_id);
+						sn_add_topic_name_in_map(sa->topic_id,s->topic->value);
+
+						add_topics_to_list_box(s->topic->value, s->topic->qos);
+						save_topic_to_db(s->topic->value, s->topic->qos);
+						sn_remove_message_from_map(sa->message_id);
+	        		}
+	        		else
+	        		{
+	        			add_topics_to_list_box(topic_name, s->topic->qos);
+	        			save_topic_to_db(topic_name, s->topic->qos);
+	        		}
 	        	} else {
 	        		printf("MQTT client have got SUBACK with error : %i \n",sa->code);
 	        	}
@@ -531,6 +541,7 @@ void process_sn_rx(char * data, int length) {
 	        		topic_name = malloc(sizeof (char)*(strlen(sn_un->topic->value)+1));
 	        		strcpy(topic_name,sn_un->topic->value);
 	        	} else {
+	        		printf("TOPIC ID : %i \n", sn_un->topic->id);
 	        		topic_name = sn_get_topic_name_from_map(sn_un->topic->id);
 	        	}
 	        	printf("TOPIC NAME : %s \n", topic_name);
