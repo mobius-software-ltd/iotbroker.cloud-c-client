@@ -22,8 +22,8 @@
 #include <pthread.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <glib.h>
 #include "../net/tcp_client.h"
-#include "../map/map.h"
 #include "../amqp/amqp_client.h"
 
 static pthread_t pinger;
@@ -32,15 +32,15 @@ static pthread_t connecter;
 static unsigned int delay_in_seconds = 10;
 
 //map for storing transfer messages for send after attach
-static map_void_t m_handler;
+static GHashTable * m_handler = NULL;
 //map for storing transfer messages for resend if needed
-static map_void_t m_delivery_id;
+static GHashTable * m_delivery_id = NULL;
 //<topic_name,topic_id>
-static map_int_t topic_name_map;
+static GHashTable * topic_name_map = NULL;
 //<topic_name,topic_id>
-static map_int_t topic_name_map_outgoing;
+static GHashTable * topic_name_map_outgoing = NULL;
 //<topic_id,topic_name>
-static map_str_t reverse_topic_name_map;
+static GHashTable * reverse_topic_name_map = NULL;
 
 static void *amqp_ping_task(void *arg)
 {
@@ -65,14 +65,16 @@ static void *amqp_message_resend_task(void *arg)
     for(;;)
     {
         sleep(5);
-        const char *key;
-        map_iter_t iter = map_iter(&m_delivery_id);
 
-        while ((key = map_next(&m_delivery_id, &iter))) {
-           struct AmqpHeader * message = malloc(sizeof(struct AmqpHeader *));
-           message = * map_get(&m_delivery_id, key);
-           amqp_encode_and_fire(message);
-        }
+        GHashTableIter iter;
+		gpointer key, value;
+
+		g_hash_table_iter_init (&iter, m_delivery_id);
+		while (g_hash_table_iter_next (&iter, &key, &value))
+		{
+			struct AmqpHeader * message = (struct AmqpHeader *)value;
+			amqp_encode_and_fire(message);
+		}
     }
     return 0;
 }
@@ -80,11 +82,11 @@ static void *amqp_message_resend_task(void *arg)
 
 void start_amqp_ping_timer(unsigned int delay) {
 
-	map_init(&m_handler);
-	map_init(&m_delivery_id);
-	map_init(&topic_name_map);
-	map_init(&topic_name_map_outgoing);
-	map_init(&reverse_topic_name_map);
+	m_handler = g_hash_table_new (g_int_hash, g_int_equal);
+	m_delivery_id = g_hash_table_new (g_int_hash, g_int_equal);
+	topic_name_map = g_hash_table_new (g_str_hash, g_str_equal);
+	topic_name_map_outgoing = g_hash_table_new (g_str_hash, g_str_equal);
+	reverse_topic_name_map = g_hash_table_new (g_int_hash, g_int_equal);
 
 	delay_in_seconds = delay;
 
@@ -126,11 +128,11 @@ void amqp_stop_connect_timer() {
 
 
 void amqp_stop_ping_timer() {
-	map_deinit(&m_handler);
-	map_deinit(&m_delivery_id);
-	map_deinit(&topic_name_map);
-	map_deinit(&topic_name_map_outgoing);
-	map_deinit(&reverse_topic_name_map);
+	g_hash_table_destroy(m_handler);
+	g_hash_table_destroy(m_delivery_id);
+	g_hash_table_destroy(topic_name_map);
+	g_hash_table_destroy(topic_name_map_outgoing);
+	g_hash_table_destroy(reverse_topic_name_map);
 	pthread_cancel(pinger);
 }
 
@@ -140,85 +142,78 @@ void amqp_stop_message_timer() {
 
 void amqp_add_message_in_map_by_handler(unsigned short handler, struct AmqpHeader * message) {
 
-	char str[12];
-	sprintf(str, "%d", handler);
-	map_set(&m_handler, str, message);
+	int* handler_int = (int*)malloc(sizeof(int));
+	handler_int[0] = handler;
+	g_hash_table_insert (m_handler, handler_int, message);
 
 }
 
 void amqp_add_message_in_map_by_delivery_id(unsigned short delivery_id, struct AmqpHeader * message) {
 
-	char str[12];
-	sprintf(str, "%d", delivery_id);
-	map_set(&m_delivery_id, str, message);
+	int* delivery_id_int = (int*)malloc(sizeof(int));
+	delivery_id_int[0] = delivery_id;
+	g_hash_table_insert (m_handler, delivery_id_int, message);
 
 }
 
 
 struct AmqpHeader * amqp_get_message_from_map_by_handler(unsigned short handler){
 
-	char str[12];
-	sprintf(str, "%d", handler);
-	const char *key;
-	map_iter_t iter = map_iter(&m_handler);
+	gpointer value = g_hash_table_lookup(m_handler, &handler);
+	if(value == NULL)
+		return NULL;
+	else
+		return (struct AmqpHeader *)value;
 
-	struct AmqpHeader * message = malloc(sizeof(struct AmqpHeader *));
-	while ((key = map_next(&m_handler, &iter))) {
-		 message = *map_get(&m_handler, key);
-		 if(strcmp(key,str)==0) {
-			 return message;
-		 }
-	}
-	return NULL;
 }
 
 struct AmqpHeader * amqp_get_message_from_map_by_delivery_id(unsigned short delivery_id){
 
-	char str[12];
-	sprintf(str, "%d", delivery_id);
-	const char *key;
-	map_iter_t iter = map_iter(&m_delivery_id);
+	gpointer value = g_hash_table_lookup(m_delivery_id, &delivery_id);
+	if(value == NULL)
+		return NULL;
+	else
+		return (struct AmqpHeader *)value;
 
-	struct AmqpHeader * message = malloc(sizeof(struct AmqpHeader *));
-	while ((key = map_next(&m_delivery_id, &iter))) {
-		 message = *map_get(&m_delivery_id, key);
-		 if(strcmp(key,str)==0) {
-			 return message;
-		 }
-	}
-	return NULL;
 }
 
 
 void amqp_remove_message_from_map_handler (unsigned short handler) {
-	char str[12];
-	sprintf(str, "%d", handler);
-	const char *key = str;
-	map_remove(&m_handler, key);
+
+	int* handler_int = (int*)malloc(sizeof(int));
+	handler_int[0]=handler;
+	g_hash_table_remove(m_handler, handler_int);
+
 }
 
 void amqp_remove_message_from_map_delivery_id (unsigned short delivery_id) {
-	char str[12];
-	sprintf(str, "%d", delivery_id);
-	const char *key = str;
-	map_remove(&m_delivery_id, key);
+
+	int* delivery_id_int = (int*)malloc(sizeof(int));
+	delivery_id_int[0]=delivery_id;
+	g_hash_table_remove(m_delivery_id, delivery_id_int);
+
 }
 
 
 void amqp_remove_topic_name_from_map (char * topic_name) {
-	map_remove(&topic_name_map, topic_name);
+
+	g_hash_table_remove(topic_name_map, topic_name);
+
 }
 
 void amqp_remove_topic_name_from_map_outgoing (char * topic_name) {
-	map_remove(&topic_name_map_outgoing, topic_name);
+
+	g_hash_table_remove(topic_name_map_outgoing, topic_name);
+
 }
 
 
 void amqp_remove_handle_from_map (unsigned short packet_id) {
-	char str[12];
-	sprintf(str, "%d", packet_id);
-	const char *key = str;
-	map_remove(&reverse_topic_name_map, key);
+
+	int* packet_id_int = (int*)malloc(sizeof(int));
+	packet_id_int[0]=packet_id;
+	g_hash_table_remove(reverse_topic_name_map, packet_id_int);
+
 }
 
 void amqp_stop_all_timers(){
@@ -227,63 +222,63 @@ void amqp_stop_all_timers(){
 }
 
 void amqp_add_handler_in_map(const char * topic_name, unsigned short handler) {
-	map_set(&topic_name_map, (char *)topic_name, handler);
+
+	int* handler_int = (int*)malloc(sizeof(int));
+	handler_int[0] = handler;
+	g_hash_table_insert (topic_name_map, (char*)topic_name, handler_int);
+
 }
 
 void amqp_add_handler_in_map_outgoing(const char * topic_name, unsigned short handler) {
-	map_set(&topic_name_map_outgoing, (char *)topic_name, handler);
+
+	int* handler_int = (int*)malloc(sizeof(int));
+	handler_int[0] = handler;
+	g_hash_table_insert (topic_name_map, (char*)topic_name, handler_int);
+
 }
 
 void amqp_add_topic_name_in_map(unsigned short handler, const char * topic_name) {
-	char str[12];
-	sprintf(str, "%d", handler);
-	map_set(&reverse_topic_name_map, str, (char *)topic_name);
+
+	int handler_int = handler;
+	g_hash_table_insert (reverse_topic_name_map, &handler_int, (char*)topic_name);
+
 }
 
 unsigned short amqp_get_handler_from_map(const char * topic_name) {
 
-	const char *key;
-	map_iter_t iter = map_iter(&topic_name_map);
-
-	unsigned short handler = 0;
-	while ((key = map_next(&topic_name_map, &iter))) {
-		handler = *map_get(&topic_name_map, key);
-		 if(strcmp(key,topic_name)==0) {
-			 return handler;
-		 }
+	gpointer value = g_hash_table_lookup(topic_name_map, topic_name);
+	if(value == NULL)
+	{
+		return 0;
 	}
-	return 0;
+	else
+	{
+		return *(int*)value;
+	}
+
 }
 
 unsigned short amqp_get_handler_from_map_outgoing(const char * topic_name) {
 
-	const char *key;
-	map_iter_t iter = map_iter(&topic_name_map_outgoing);
-
-	unsigned short handler = 0;
-	while ((key = map_next(&topic_name_map_outgoing, &iter))) {
-		handler = *map_get(&topic_name_map_outgoing, key);
-		 if(strcmp(key,topic_name)==0) {
-			 return handler;
-		 }
+	gpointer value = g_hash_table_lookup(topic_name_map_outgoing, topic_name);
+	if(value == NULL)
+	{
+		return 0;
 	}
-	return 0;
+	else
+	{
+		return *(int*)value;
+	}
+
 }
 
 char * amqp_get_topic_name_from_map(unsigned short handler) {
 
-	char str[12];
-	sprintf(str, "%d", handler);
-	const char *key;
-	map_iter_t iter = map_iter(&reverse_topic_name_map);
+	int handler_int = handler;
+	gpointer value = g_hash_table_lookup(reverse_topic_name_map, &handler_int);
+	if(value != NULL)
+		return (char *)value;
+	else
+		return NULL;
 
-	char * topic_name = malloc(sizeof(topic_name));
-	while ((key = map_next(&reverse_topic_name_map, &iter))) {
-		topic_name = *map_get(&reverse_topic_name_map, key);
-		 if(strcmp(key,str)==0) {
-			 return topic_name;
-		 }
-	}
-
-	return NULL;
 }
