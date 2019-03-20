@@ -23,6 +23,7 @@
 #include <pthread.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <glib.h>
 #include "../net/tcp_client.h"
 #include "../map/map.h"
 #include "../mqtt/mqtt_client.h"
@@ -38,7 +39,7 @@ static pthread_t connecter;
 static unsigned int delay_in_seconds = 10;
 int stop_ping = 0;
 
-static map_void_t m;
+static GHashTable *messages_map = NULL;
 
 static void *ping_task(void *arg)
 {
@@ -55,14 +56,10 @@ static void *connect_task(void *arg)
     for(int i = 0; i < 5; i++)
     {
         sleep(3);
-        const char *key;
-        map_iter_t iter = map_iter(&m);
-
-        while ((key = map_next(&m, &iter))) {
-           struct Message * message = malloc(sizeof(struct Message *));
-           message = * map_get(&m, key);
-           encode_and_fire(message);
-        }
+        int key = 0;
+		gpointer value = g_hash_table_lookup(messages_map, &key);
+		if(value != NULL)
+			encode_and_fire((struct Message *)value);
     }
     return 0;
 }
@@ -72,21 +69,21 @@ static void *message_resend_task(void *arg)
     for(;;)
     {
         sleep(5);
-        const char *key;
-        map_iter_t iter = map_iter(&m);
+        GHashTableIter iter;
+		gpointer key, value;
 
-        while ((key = map_next(&m, &iter))) {
-           struct Message * message = malloc(sizeof(struct Message *));
-           message = * map_get(&m, key);
-           encode_and_fire(message);
-        }
+		g_hash_table_iter_init (&iter, messages_map);
+		while (g_hash_table_iter_next (&iter, &key, &value))
+		{
+			encode_and_fire((struct Message *)value);
+		}
     }
     return 0;
 }
 
 void start_connect_timer() {
 
-	map_init(&m);
+	messages_map = g_hash_table_new (g_int_hash, g_int_equal);
 
 	long t = 10;
 	int rc = pthread_create(&connecter, NULL, connect_task, (void *)t);
@@ -127,7 +124,7 @@ void stop_connect_timer() {
 }
 
 void stop_ping_timer() {
-	map_deinit(&m);
+	g_hash_table_destroy (messages_map);
 	pthread_cancel(pinger);
 }
 
@@ -173,35 +170,25 @@ void add_message_in_map(struct Message * message) {
 			break;
 	}
 
-	char str[12];
-	sprintf(str, "%d", packet_id);
-	map_set(&m, str, message);
+
+	int* packet_id_int = (int*)malloc(sizeof(int));
+	packet_id_int[0]=packet_id;
+	g_hash_table_insert (messages_map, packet_id_int, message);
 }
 
 struct Message * get_message_from_map(unsigned short packet_id){
 
-	char str[12];
-	sprintf(str, "%d", packet_id);
-	const char *key;
-	map_iter_t iter = map_iter(&m);
-
-	struct Message * message = malloc(sizeof(struct Message *));
-	while ((key = map_next(&m, &iter))) {
-		 message = *map_get(&m, key);
-		 if(strcmp(key,str)==0) {
-			 return message;
-		 }
-	}
-
-
-	return NULL;
+	gpointer value = g_hash_table_lookup(messages_map, &packet_id);
+	if(value == NULL)
+		return NULL;
+	else
+		return (struct Message *)value;
 }
 
 void remove_message_from_map (unsigned short packet_id) {
-	char str[12];
-	sprintf(str, "%d", packet_id);
-	const char *key = str;
-	map_remove(&m, key);
+	int* packet_id_int = (int*)malloc(sizeof(int));
+	packet_id_int[0]=packet_id;
+	g_hash_table_remove(messages_map, packet_id_int);
 }
 
 void stop_all_timers(){
