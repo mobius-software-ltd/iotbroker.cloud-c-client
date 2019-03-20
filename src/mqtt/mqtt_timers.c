@@ -25,7 +25,6 @@
 #include <stdio.h>
 #include <glib.h>
 #include "../net/tcp_client.h"
-#include "../map/map.h"
 #include "../mqtt/mqtt_client.h"
 #include "../mqtt/packets/subscribe.h"
 #include "../mqtt/packets/unsubscribe.h"

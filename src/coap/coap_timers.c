@@ -20,18 +20,18 @@
 
 #include <time.h>
 #include <unistd.h>
+#include <glib.h>
 #include <pthread.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include "../net/tcp_client.h"
-#include "../map/map.h"
 #include "../coap/coap_client.h"
 
 static pthread_t pinger;
 static pthread_t messager;
 static unsigned int delay_in_seconds = 10;
 
-static map_void_t m;
+static GHashTable *messages_map = NULL;
 
 static void *coap_ping_task(void *arg)
 {
@@ -47,15 +47,16 @@ static void *coap_message_resend_task(void *arg)
 {
     for(;;)
     {
-        sleep(5);
-        const char *key;
-        map_iter_t iter = map_iter(&m);
+         sleep(5);
+         GHashTableIter iter;
+		 gpointer key, value;
 
-        while ((key = map_next(&m, &iter))) {
-           struct CoapMessage * message = malloc(sizeof(struct CoapMessage *));
-           message = * map_get(&m, key);
-           coap_encode_and_fire(message);
-        }
+		 g_hash_table_iter_init (&iter, messages_map);
+		 while (g_hash_table_iter_next (&iter, &key, &value))
+		 {
+			struct CoapMessage * coap_message = (struct CoapMessage *)value;
+			coap_encode_and_fire(coap_message);
+		 }
     }
     return 0;
 }
@@ -86,7 +87,7 @@ void coap_start_message_timer() {
 }
 
 void coap_stop_ping_timer() {
-	map_deinit(&m);
+	g_hash_table_destroy (messages_map);
 	pthread_cancel(pinger);
 }
 
@@ -96,35 +97,27 @@ void coap_stop_message_timer() {
 
 void coap_add_message_in_map(struct CoapMessage * message) {
 
-	char str[12];
-	sprintf(str, "%d", message->message_id);
-	map_set(&m, str, message);
+	int* packet_id_int = (int*)malloc(sizeof(int));
+	packet_id_int[0]=message->message_id;
+	g_hash_table_insert (messages_map, packet_id_int, message);
 
 }
 
 struct CoapMessage * coap_get_message_from_map(unsigned short packet_id){
 
-	char str[12];
-	sprintf(str, "%d", packet_id);
-	const char *key;
-	map_iter_t iter = map_iter(&m);
-
-	struct CoapMessage * message = malloc(sizeof(struct CoapMessage *));
-	while ((key = map_next(&m, &iter))) {
-		 message = *map_get(&m, key);
-		 if(strcmp(key,str)==0) {
-			 return message;
-		 }
-	}
-
-	return NULL;
+	gpointer value = g_hash_table_lookup(messages_map, &packet_id);
+	if(value == NULL)
+		return NULL;
+	else
+		return (struct CoapMessage *)value;
 }
 
 void coap_remove_message_from_map (unsigned short packet_id) {
-	char str[12];
-	sprintf(str, "%d", packet_id);
-	const char *key = str;
-	map_remove(&m, key);
+
+	int* packet_id_int = (int*)malloc(sizeof(int));
+	packet_id_int[0]=packet_id;
+	g_hash_table_remove(messages_map, packet_id_int);
+
 }
 
 void coap_stop_all_timers(){
