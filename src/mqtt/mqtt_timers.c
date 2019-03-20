@@ -177,7 +177,9 @@ void add_message_in_map(struct Message * message) {
 
 struct Message * get_message_from_map(unsigned short packet_id){
 
-	gpointer value = g_hash_table_lookup(messages_map, &packet_id);
+	int* packet_id_int = (int*)malloc(sizeof(int));
+	packet_id_int[0] = packet_id;
+	gpointer value = g_hash_table_lookup(messages_map, packet_id_int);
 	if(value == NULL)
 		return NULL;
 	else

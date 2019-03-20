@@ -64,7 +64,7 @@ static void show_app_window(){
 
 static void show_error(const gchar * error_message) {
   main_window_activated = FALSE;
-  GtkWidget * dialog = gtk_message_dialog_new(GTK_WINDOW (account_list_window), GTK_DIALOG_DESTROY_WITH_PARENT, GTK_MESSAGE_ERROR, GTK_BUTTONS_OK, error_message);
+  GtkWidget *dialog = gtk_message_dialog_new(GTK_WINDOW (account_list_window), GTK_DIALOG_DESTROY_WITH_PARENT, GTK_MESSAGE_ERROR, GTK_BUTTONS_OK, "%s", error_message);
   gtk_window_set_title(GTK_WINDOW(dialog), "Error");
   gtk_dialog_run(GTK_DIALOG(dialog));
   gtk_widget_destroy(dialog);
