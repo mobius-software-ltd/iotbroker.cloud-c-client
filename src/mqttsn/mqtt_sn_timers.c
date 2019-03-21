@@ -199,7 +199,10 @@ void sn_add_topic_name_in_map(unsigned short topic_id, const char * topic_name) 
 
 struct SnMessage * sn_get_message_from_map(unsigned short packet_id) {
 
-	gpointer value = g_hash_table_lookup(messages_map, &packet_id);
+	int* packet_id_int = (int*)malloc(sizeof(int));
+	packet_id_int[0] = packet_id;
+
+	gpointer value = g_hash_table_lookup(messages_map, packet_id_int);
 	if(value == NULL)
 		return NULL;
 	else
@@ -222,8 +225,9 @@ unsigned short sn_get_topic_id_from_map(const char * topic_name) {
 
 char * sn_get_topic_name_from_map(unsigned short topic_id) {
 
-	int topic_id_int = topic_id;
-	gpointer value = g_hash_table_lookup(reverse_topic_name_map, &topic_id_int);
+	int* topic_id_int = (int*)malloc(sizeof(int));
+	topic_id_int[0] = topic_id;
+	gpointer value = g_hash_table_lookup(reverse_topic_name_map, topic_id_int);
 	if(value != NULL)
 		return (char *)value;
 	else

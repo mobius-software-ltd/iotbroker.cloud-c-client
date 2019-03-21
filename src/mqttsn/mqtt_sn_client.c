@@ -541,10 +541,8 @@ void process_sn_rx(char * data, int length) {
 	        		topic_name = malloc(sizeof (char)*(strlen(sn_un->topic->value)+1));
 	        		strcpy(topic_name,sn_un->topic->value);
 	        	} else {
-	        		printf("TOPIC ID : %i \n", sn_un->topic->id);
 	        		topic_name = sn_get_topic_name_from_map(sn_un->topic->id);
 	        	}
-	        	printf("TOPIC NAME : %s \n", topic_name);
 	        	remove_topic_from_list_box(topic_name);
 	        	remove_topic_from_db(topic_name);
 	        	sn_remove_message_from_map(sn_un->message_id);

@@ -159,7 +159,10 @@ void amqp_add_message_in_map_by_delivery_id(unsigned short delivery_id, struct A
 
 struct AmqpHeader * amqp_get_message_from_map_by_handler(unsigned short handler){
 
-	gpointer value = g_hash_table_lookup(m_handler, &handler);
+	int* handler_int = (int*)malloc(sizeof(int));
+	handler_int[0] = handler;
+
+	gpointer value = g_hash_table_lookup(m_handler, handler_int);
 	if(value == NULL)
 		return NULL;
 	else
@@ -169,7 +172,9 @@ struct AmqpHeader * amqp_get_message_from_map_by_handler(unsigned short handler)
 
 struct AmqpHeader * amqp_get_message_from_map_by_delivery_id(unsigned short delivery_id){
 
-	gpointer value = g_hash_table_lookup(m_delivery_id, &delivery_id);
+	int* delivery_id_int = (int*)malloc(sizeof(int));
+	delivery_id_int[0] = delivery_id;
+	gpointer value = g_hash_table_lookup(m_delivery_id, delivery_id_int);
 	if(value == NULL)
 		return NULL;
 	else
@@ -274,8 +279,9 @@ unsigned short amqp_get_handler_from_map_outgoing(const char * topic_name) {
 
 char * amqp_get_topic_name_from_map(unsigned short handler) {
 
-	int handler_int = handler;
-	gpointer value = g_hash_table_lookup(reverse_topic_name_map, &handler_int);
+	int* handler_int = (int*)malloc(sizeof(int));
+	handler_int[0] = handler;
+	gpointer value = g_hash_table_lookup(reverse_topic_name_map, handler_int);
 	if(value != NULL)
 		return (char *)value;
 	else

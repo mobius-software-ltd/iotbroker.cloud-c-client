@@ -659,22 +659,22 @@ char * sn_encode(struct SnMessage * message, int length) {
 	     }
 	     case SN_PUBREC: {
 	    	 struct SnPubrec spc = *(struct SnPubrec*) message->packet;
-	    	 add_short(&buf[i], spc.message_id);
+	    	 i+=add_short(&buf[i], spc.message_id);
 	    	 break;
 	     }
 	     case SN_PUBREL: {
 	    	 struct SnPubrel spr = *(struct SnPubrel*) message->packet;
-	    	 add_short(&buf[i], spr.message_id);
+	    	 i+=add_short(&buf[i], spr.message_id);
 	    	 break;
 	     }
 	     case SN_PUBCOMP: {
 	    	 struct SnPubcomp spcp = *(struct SnPubcomp*) message->packet;
-	    	 add_short(&buf[i], spcp.message_id);
+	    	 i+=add_short(&buf[i], spcp.message_id);
 	    	 break;
 	     }
 	     case SN_UNSUBACK: {
 	    	 struct SnUnsuback susa = *(struct SnUnsuback*) message->packet;
-	    	 add_short(&buf[i], susa.message_id);
+	    	 i+=add_short(&buf[i], susa.message_id);
 	    	 break;
 	     }
          case SN_SUBSCRIBE: {
