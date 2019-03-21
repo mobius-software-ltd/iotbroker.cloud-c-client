@@ -162,8 +162,9 @@ void activate_loading_window (GtkApplication* _app, gpointer user_data) {
 	box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 6);
 
 	loading_window = gtk_application_window_new (app);
+	gtk_window_set_position (GTK_WINDOW (loading_window), GTK_WIN_POS_CENTER);
+	gtk_window_set_icon_from_file (GTK_WINDOW (loading_window), "./images/logo.png", NULL);
 	gtk_window_set_title (GTK_WINDOW (loading_window), "IOT Broker C client");
-	//gtk_window_set_default_size (GTK_WINDOW (loading_window), 400, 550);
 	gtk_window_set_default_size (GTK_WINDOW (loading_window), 330, 450);
 	g_signal_connect(G_OBJECT(loading_window), "delete_event", G_CALLBACK(quit), mqtt_listener);
 	progress_bar = gtk_progress_bar_new ();
@@ -202,6 +203,8 @@ static void show_account_list_window(struct MqttModel * model) {
 	GtkWidget * scrolled_window;
 	//if(account_list_window==NULL) {
 		account_list_window = gtk_application_window_new (app);
+		gtk_window_set_position (GTK_WINDOW (account_list_window), GTK_WIN_POS_CENTER);
+		gtk_window_set_icon_from_file (GTK_WINDOW (account_list_window), "./images/logo.png", NULL);
 		gtk_window_set_title (GTK_WINDOW (account_list_window), "Accounts' list");
 		gtk_window_set_resizable (GTK_WINDOW (account_list_window), FALSE);
 		gtk_widget_set_size_request (account_list_window, 400, 550);
@@ -313,5 +316,9 @@ static void connection_success() {
 
 void reload_account_list_window() {
 
-	show_account_list_window(retrieve_accounts());
+	struct MqttModel * m = retrieve_accounts();
+	if(m != NULL)
+		show_account_list_window(m);
+	else
+		exit(0);
 }

@@ -625,7 +625,7 @@ char * sn_encode(struct SnMessage * message, int length) {
 	    	 struct SnRegAck sra = *(struct SnRegAck*) message->packet;
         	 i += add_short(&buf[i], sra.topic_id);
         	 i += add_short(&buf[i], sra.message_id);
-        	 buf[i] = sra.code;
+        	 buf[i++] = sra.code;
         	 break;
 	     }
 	     case SN_PUBLISH: {
@@ -787,9 +787,9 @@ struct SnMessage * sn_decode(char * buf) {
 
 	int i = 0;
 	int length = 0;
-	short first_length_byte = (short)(0x00FF & (short)buf[i++]);
+	char first_length_byte = buf[i++];
 	if (first_length_byte == THREE_OCTET_LENGTH_SUFFIX) {
-		add_short(&buf[i], length);
+		length = get_short(buf, i);
 		i+=2;
 	}
 	else {
@@ -929,9 +929,12 @@ struct SnMessage * sn_decode(char * buf) {
 	        	pub->topic.id = topic_id;
 	        }
             pub->topic.qos = pub_flags->qos;
+            printf("bytes_left : %i \n", bytes_left);
+            printf("I : %i \n", i);
             if (bytes_left > 0) {
             	pub->data = get_string(&buf[i], bytes_left);
             }
+            printf("content of incoming publish : %s \n", pub->data);
             m->packet = pub;
             break;
 	    }

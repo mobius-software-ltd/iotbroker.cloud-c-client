@@ -64,6 +64,7 @@ static void *connect_task(void *arg)
         if(value != NULL)
 			sn_encode_and_fire((struct SnMessage *)value);
     }
+    fin_mqtt_sn_client();
     return 0;
 }
 
@@ -137,9 +138,12 @@ void sn_stop_connect_timer() {
 }
 
 void sn_stop_ping_timer() {
-	g_hash_table_destroy (messages_map);
-	g_hash_table_destroy (topic_name_map);
-	g_hash_table_destroy (reverse_topic_name_map);
+	if(messages_map!=NULL)
+		g_hash_table_destroy (messages_map);
+	if(topic_name_map!=NULL)
+		g_hash_table_destroy (topic_name_map);
+	if(reverse_topic_name_map!=NULL)
+		g_hash_table_destroy (reverse_topic_name_map);
 	pthread_cancel(pinger);
 }
 
@@ -192,8 +196,9 @@ void sn_add_topic_id_in_map(const char * topic_name, unsigned short topic_id) {
 
 void sn_add_topic_name_in_map(unsigned short topic_id, const char * topic_name) {
 
-	int topic_id_int = topic_id;
-	g_hash_table_insert (reverse_topic_name_map, &topic_id_int, (char*)topic_name);
+	int* topic_id_int = (int*)malloc(sizeof(int));
+	topic_id_int[0]=topic_id;
+	g_hash_table_insert (reverse_topic_name_map, topic_id_int, (char*)topic_name);
 
 }
 

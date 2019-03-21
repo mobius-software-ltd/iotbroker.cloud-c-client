@@ -31,5 +31,6 @@ void send_sn_subscribe(char * topic_name, int qos);
 void sn_send_ping(void);
 void send_sn_disconnect();
 void sn_encode_and_fire(struct SnMessage * sn_message);
+void fin_mqtt_sn_client();
 
 #endif /* MQTTSN_MQTT_SN_CLIENT_H_ */

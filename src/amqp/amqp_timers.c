@@ -125,8 +125,6 @@ void amqp_stop_connect_timer() {
 	pthread_cancel(connecter);
 }
 
-
-
 void amqp_stop_ping_timer() {
 	g_hash_table_destroy(m_handler);
 	g_hash_table_destroy(m_delivery_id);

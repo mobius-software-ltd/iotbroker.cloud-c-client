@@ -409,9 +409,7 @@ void process_rx(char * data, int length) {
 void fin_mqtt_client() {
 	if(connection_established == 0) {
 		mqtt_listener->cu_pt(-1);
-		stop_connect_timer();
-		stop_ping_timer();
-		stop_message_timer();
+		stop_all_timers();
 	}
 }
 

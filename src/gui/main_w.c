@@ -216,25 +216,11 @@ void add_topics_to_list_box (const char * topic_name, int qos) {
 
 }
 
-static void warning_window_handler (GtkWidget *widget, GdkEventExpose *event, gpointer data)
-{
-	gtk_widget_set_sensitive(GTK_WIDGET (data), TRUE);
-}
-
-static void show_warn_window(GtkWidget * curr_widget,const gchar * warning_string) {
-	GtkWidget *warning_window;
-	warning_window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
-	gtk_window_set_title (GTK_WINDOW (warning_window), "Add topic");
-	gtk_window_set_resizable (GTK_WINDOW (warning_window), FALSE);
-	gtk_widget_set_size_request (warning_window, 280, 280);
-	gtk_container_add(GTK_CONTAINER(warning_window), gtk_label_new(warning_string));
-	GtkWidget * parent = gtk_widget_get_parent(curr_widget);
-	parent = gtk_widget_get_parent(parent);
-	parent = gtk_widget_get_parent(parent);
-	parent = gtk_widget_get_parent(parent);
-	gtk_widget_set_sensitive(GTK_WIDGET(parent), FALSE);
-	g_signal_connect(G_OBJECT(warning_window), "delete_event", G_CALLBACK(warning_window_handler), parent);
-	gtk_widget_show_all(warning_window);
+static void show_error(const gchar * error_message) {
+  GtkWidget * dialog = gtk_message_dialog_new(GTK_WINDOW (main_window), GTK_DIALOG_DESTROY_WITH_PARENT, GTK_MESSAGE_ERROR, GTK_BUTTONS_OK, "%s", error_message);
+  gtk_window_set_title(GTK_WINDOW(dialog), "Error");
+  gtk_dialog_run(GTK_DIALOG(dialog));
+  gtk_widget_destroy(dialog);
 }
 
 
@@ -286,8 +272,8 @@ void update_messages_window (const char * content, const char * topic_name, int 
 	gtk_grid_attach (GTK_GRID (grid), label, 1, 0, 1, 1);
 
 	GtkWidget *separator = gtk_separator_new(GTK_ORIENTATION_HORIZONTAL);
-	gtk_box_pack_start (GTK_BOX(messages_box), GTK_WIDGET(grid), FALSE, FALSE, 1);
-	gtk_box_pack_start(GTK_BOX(messages_box), separator, FALSE, FALSE, 1);
+	gtk_box_pack_end (GTK_BOX(messages_box), GTK_WIDGET(grid), FALSE, FALSE, 1);
+	gtk_box_pack_end(GTK_BOX(messages_box), separator, FALSE, FALSE, 1);
 	gtk_box_set_spacing(GTK_BOX(messages_box), 1);
 
 	gtk_widget_show_all(messages_box);
@@ -322,15 +308,13 @@ void activate_main_window(GtkApplication* app, enum Protocol protocol, struct Mq
 
 
 	  main_window = gtk_application_window_new (app);
+	  gtk_window_set_position (GTK_WINDOW (main_window), GTK_WIN_POS_CENTER);
+	  gtk_window_set_icon_from_file (GTK_WINDOW (main_window), "./images/logo.png", NULL);
 	  gtk_window_set_title (GTK_WINDOW (main_window), "IOT Broker C client");
 	  gtk_window_set_default_size (GTK_WINDOW (main_window), 280, 500);
 	  gtk_window_set_resizable (GTK_WINDOW (main_window), FALSE);
-	  //g_signal_connect(G_OBJECT(main_window), "delete_event", G_CALLBACK (log_out_handle), NULL);
 
 	  stack_switcher = gtk_stack_switcher_new ();
-//	  gtk_widget_set_vexpand (stack_switcher, TRUE);
-//	  gtk_widget_set_hexpand (stack_switcher, TRUE);
-	  //g_object_set(G_OBJECT(stack_switcher), "icon-size", GTK_ICON_SIZE_DIALOG, NULL);
 	  gtk_widget_set_halign (GTK_WIDGET(stack_switcher), GTK_ALIGN_CENTER);
 
 	  stack = gtk_stack_new ();
@@ -519,7 +503,7 @@ void add_topic_button_handle(GtkWidget *widget, gpointer data) {
 	GtkWidget * curr_widget = gtk_grid_get_child_at(GTK_GRID(grid), 2, 0);
 	const gchar * topic_name = gtk_entry_get_text(GTK_ENTRY(curr_widget));
 	if(strlen(topic_name) == 0 || strcmp("Enter topic",topic_name) == 0) {
-		show_warn_window(curr_widget, "Enter Topic");
+		show_error("Please enter topic name");
 		return;
 	}
 
@@ -542,9 +526,16 @@ void send_message_button_handle (GtkWidget *widget, gpointer data) {
 	memcpy((char*)content, (char*)content_current, strlen(content_current) + 1);
 
 	if(strlen(content) == 0 || strcmp("Enter content",content) == 0) {
-		show_warn_window(curr_widget, "Please enter content");
+		show_error("Please enter content");
 		return;
+	} else {
+		if((current_protocol == MQTT_SN || current_protocol == COAP ) &&  strlen(content_current) > 1399)
+		{
+			show_error("Content MUST be < 1400");
+			return;
+		}
 	}
+
 	gtk_entry_set_text(GTK_ENTRY(curr_widget),"");
 
 	//topic
@@ -554,7 +545,7 @@ void send_message_button_handle (GtkWidget *widget, gpointer data) {
 	memcpy((char*)topic_name, (char*)topic_name_current, strlen(topic_name_current) + 1);
 
 	if(strlen(topic_name) == 0 || strcmp("Enter topic",topic_name) == 0) {
-		show_warn_window(curr_widget, "Enter Topic");
+		show_error("Please enter topic name");
 		return;
 	}
 	gtk_entry_set_text(GTK_ENTRY(curr_widget),"");

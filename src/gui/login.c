@@ -445,6 +445,8 @@ void activate_login_window(GtkApplication* application) {
 	if (application != NULL) {
 		app = application;
 		login_window = gtk_application_window_new (app);
+		gtk_window_set_position (GTK_WINDOW (login_window), GTK_WIN_POS_CENTER);
+		gtk_window_set_icon_from_file (GTK_WINDOW (login_window), "./images/logo.png", NULL);
 		gtk_widget_set_name (login_window, "login_window");
 		gtk_window_set_title (GTK_WINDOW (login_window), "IOT Broker C client");
 		gtk_window_set_resizable (GTK_WINDOW (login_window), FALSE);

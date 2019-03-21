@@ -123,7 +123,8 @@ void stop_connect_timer() {
 }
 
 void stop_ping_timer() {
-	g_hash_table_destroy (messages_map);
+	if(messages_map != NULL)
+		g_hash_table_destroy (messages_map);
 	pthread_cancel(pinger);
 }
 

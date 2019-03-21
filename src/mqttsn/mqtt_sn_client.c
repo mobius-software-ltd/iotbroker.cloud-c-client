@@ -560,5 +560,15 @@ void process_sn_rx(char * data, int length) {
 	        }
 
 	    }
-	}
+}
+
+void fin_mqtt_sn_client() {
+
+	sn_stop_all_timers();
+	if(account->is_secure)
+		stop_dtls_net_service();
+	else
+		stop_net_service();
+	mqtt_listener->cu_pt(-1);
+}
 
