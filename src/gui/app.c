@@ -22,6 +22,7 @@
 #include <stdlib.h>
 #include "loading.h"
 #include "gui_color.h"
+#include <X11/Xlib.h>
 
 GtkWidget * login_window;
 GtkWidget * main_window;
@@ -29,6 +30,7 @@ GtkWidget * loading_window;
 
 int main (int argc, char **argv)
 {
+  XInitThreads();
   gtk_init(&argc, &argv);
   style_css();
   GtkApplication *app;

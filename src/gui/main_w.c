@@ -251,7 +251,7 @@ void update_messages_window (const char * content, const char * topic_name, int 
 	gtk_grid_attach (GTK_GRID (grid), label, 0, 0, 1, 1);
 
 	label = gtk_label_new ("qosinout");
-	gtk_widget_set_vexpand (label, TRUE);
+
 	if(is_incoming) {
 		if(qos == 0)
 			gtk_widget_set_name (label, "in_qos_0");
@@ -272,8 +272,10 @@ void update_messages_window (const char * content, const char * topic_name, int 
 	gtk_grid_attach (GTK_GRID (grid), label, 1, 0, 1, 1);
 
 	GtkWidget *separator = gtk_separator_new(GTK_ORIENTATION_HORIZONTAL);
-	gtk_box_pack_end (GTK_BOX(messages_box), GTK_WIDGET(grid), FALSE, FALSE, 1);
-	gtk_box_pack_end(GTK_BOX(messages_box), separator, FALSE, FALSE, 1);
+	gtk_box_pack_start (GTK_BOX(messages_box), GTK_WIDGET(grid), FALSE, FALSE, 1);
+	gtk_box_reorder_child(GTK_BOX(messages_box), GTK_WIDGET(grid),0);
+	gtk_box_pack_start(GTK_BOX(messages_box), separator, FALSE, FALSE, 1);
+	gtk_box_reorder_child(GTK_BOX(messages_box), separator,1);
 	gtk_box_set_spacing(GTK_BOX(messages_box), 1);
 
 	gtk_widget_show_all(messages_box);
@@ -311,7 +313,7 @@ void activate_main_window(GtkApplication* app, enum Protocol protocol, struct Mq
 	  gtk_window_set_position (GTK_WINDOW (main_window), GTK_WIN_POS_CENTER);
 	  gtk_window_set_icon_from_file (GTK_WINDOW (main_window), "./images/logo.png", NULL);
 	  gtk_window_set_title (GTK_WINDOW (main_window), "IOT Broker C client");
-	  gtk_window_set_default_size (GTK_WINDOW (main_window), 280, 500);
+	  gtk_window_set_default_size (GTK_WINDOW (main_window), 330, 500);
 	  gtk_window_set_resizable (GTK_WINDOW (main_window), FALSE);
 
 	  stack_switcher = gtk_stack_switcher_new ();

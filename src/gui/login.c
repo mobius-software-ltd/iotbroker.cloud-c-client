@@ -125,7 +125,7 @@ static void print_coap_box() {
 
 static void show_error(const gchar * error_message) {
   is_login_button_pressed = FALSE;
-  GtkWidget * dialog = gtk_message_dialog_new(GTK_WINDOW (login_window), GTK_DIALOG_DESTROY_WITH_PARENT, GTK_MESSAGE_ERROR, GTK_BUTTONS_OK, error_message);
+  GtkWidget * dialog = gtk_message_dialog_new(GTK_WINDOW (login_window), GTK_DIALOG_DESTROY_WITH_PARENT, GTK_MESSAGE_ERROR, GTK_BUTTONS_OK, "%s",error_message);
   gtk_window_set_title(GTK_WINDOW(dialog), "Error");
   gtk_dialog_run(GTK_DIALOG(dialog));
   gtk_widget_destroy(dialog);
@@ -357,12 +357,16 @@ static void login_button_handle(GtkWidget *widget, gpointer data) {
 		else
 			account->certificate_password = cert_pass;
 
+		//will save changes even if connection not success
+		save_changes(account);
+		gtk_widget_hide(login_window);
+
 		mqtt_listener = malloc (sizeof (struct MqttListener));
 		mqtt_listener->cs_pt = connection_success;
 		mqtt_listener->cu_pt = connection_unsuccessful;
 
 
-
+		activate_loading_window(NULL,NULL);
 		switch (current_protocol) {
 			case MQTT : {
 				if (init_mqtt_client(account, mqtt_listener) != 0) {
@@ -697,18 +701,21 @@ void activate_login_window(GtkApplication* application) {
 }
 
 static void connection_success() {
-		is_login_button_pressed = FALSE;
-		struct MqttModel mqtt_model;
-		mqtt_model.account = account;
-		mqtt_model.save_acc_pt = save_changes;
-		mqtt_model.save_acc_pt(account);
-		//and open common window
-		gtk_widget_hide(login_window);
-		activate_main_window(app, current_protocol, mqtt_listener, account);
+
+	hide_loading_window();
+	is_login_button_pressed = FALSE;
+//	struct MqttModel mqtt_model;
+//	mqtt_model.account = account;
+//	mqtt_model.save_acc_pt = save_changes;
+//	mqtt_model.save_acc_pt(account);
+	//and open common window
+	//gtk_widget_hide(login_window);
+	activate_main_window(app, current_protocol, mqtt_listener, account);
 }
 
 static void connection_unsuccessful(int cause) {
 
+	hide_loading_window();
 	char dst[256]="Connection unsuccessful for ";
 	strcat(dst, PROTOCOLS_STRING[current_protocol]);
 	strcat(dst, " client\n");
@@ -726,4 +733,5 @@ static void connection_unsuccessful(int cause) {
 	}
 
 	show_error(dst);
+	reload_account_list_window();
 }

@@ -118,6 +118,7 @@ void send_connect(struct Account * account) {
 	start_connect_timer();
 
 	add_message_in_map(message);
+	connection_established = 1;
 
 }
 

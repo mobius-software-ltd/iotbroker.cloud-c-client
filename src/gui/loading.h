@@ -20,3 +20,4 @@
 
 void activate_loading_window (GtkApplication* app, gpointer user_data);
 void reload_account_list_window(void);
+void hide_loading_window(void);

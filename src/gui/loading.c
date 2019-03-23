@@ -35,7 +35,7 @@
 
 
 GtkWidget * account_list_window = NULL;
-GtkWidget * loading_window;
+GtkWidget * loading_window = NULL;
 GtkApplication * app;
 gboolean main_window_activated = FALSE;
 
@@ -43,6 +43,9 @@ struct MqttModel * retrieve_accounts();
 static void show_account_list_window(struct MqttModel * model);
 static void add_new_account_handler(GtkButton *button, gpointer user_data);
 static void connection_success();
+static void connection_unsuccessful(int cause);
+void reload_account_list_window();
+void activate_loading_window (GtkApplication* _app, gpointer user_data);
 
 struct MqttListener * mqtt_listener;
 enum Protocol current_protocol;
@@ -53,10 +56,10 @@ static void show_app_window(){
 	struct MqttModel * model = retrieve_accounts();
 	if(model == NULL) {
 		//create new one in new account window
-		gtk_widget_destroy(loading_window);
+		gtk_widget_hide(loading_window);
 		activate_login_window(app);
 	} else {
-		gtk_widget_destroy(loading_window);
+		gtk_widget_hide(loading_window);
 		//create new window with list of accounts and close old one
 		show_account_list_window(model);
 	}
@@ -89,7 +92,8 @@ static gboolean fill (gpointer user_data)
   /*Ensures that the fraction stays below 1.0*/
   if (fraction < 1.0)
     return TRUE;
-  show_app_window();
+  if(account_list_window == NULL )
+	  show_app_window();
   return FALSE;
 }
 
@@ -106,6 +110,8 @@ static void remove_account_button_handle (GtkWidget *widget, gpointer data) {
 
 void activate_main_window_default (GtkButton * button, struct Account * _account) {
 
+	gtk_widget_hide(account_list_window);
+	activate_loading_window(NULL,NULL);
 	if(!main_window_activated)
 	{
 		main_window_activated = TRUE;
@@ -115,6 +121,7 @@ void activate_main_window_default (GtkButton * button, struct Account * _account
 
 		mqtt_listener = malloc (sizeof (struct MqttListener));
 		mqtt_listener->cs_pt = connection_success;
+		mqtt_listener->cu_pt = connection_unsuccessful;
 
 		if(current_protocol == MQTT) {
 			if (init_mqtt_client(account, mqtt_listener) != 0) {
@@ -147,12 +154,14 @@ void activate_main_window_default (GtkButton * button, struct Account * _account
 			exit(1);
 		}
 		mqtt_listener->send_connect(account);
+
 	}
 }
 
 void activate_loading_window (GtkApplication* _app, gpointer user_data) {
 
-	app = _app;
+	if(_app != NULL)
+		app = _app;
 
 	GtkWidget * image;
 	GtkWidget * box;
@@ -165,7 +174,7 @@ void activate_loading_window (GtkApplication* _app, gpointer user_data) {
 	gtk_window_set_position (GTK_WINDOW (loading_window), GTK_WIN_POS_CENTER);
 	gtk_window_set_icon_from_file (GTK_WINDOW (loading_window), "./images/logo.png", NULL);
 	gtk_window_set_title (GTK_WINDOW (loading_window), "IOT Broker C client");
-	gtk_window_set_default_size (GTK_WINDOW (loading_window), 330, 450);
+	gtk_window_set_default_size (GTK_WINDOW (loading_window), 330, 500);
 	g_signal_connect(G_OBJECT(loading_window), "delete_event", G_CALLBACK(quit), mqtt_listener);
 	progress_bar = gtk_progress_bar_new ();
 	gtk_box_pack_end (GTK_BOX(box), progress_bar, TRUE, TRUE, 1);
@@ -175,7 +184,11 @@ void activate_loading_window (GtkApplication* _app, gpointer user_data) {
 	gtk_box_pack_end (GTK_BOX(box), image, TRUE, TRUE, 1);
 	gtk_container_add (GTK_CONTAINER (loading_window), box);
 	gtk_progress_bar_set_fraction (GTK_PROGRESS_BAR (progress_bar), fraction);
-	g_timeout_add (200, fill, GTK_PROGRESS_BAR (progress_bar));
+	if(_app != NULL)
+		g_timeout_add (200, fill, GTK_PROGRESS_BAR (progress_bar));
+	else
+		g_timeout_add (2800, fill, GTK_PROGRESS_BAR (progress_bar));
+
 	gtk_widget_show_all (loading_window);
 
 }
@@ -207,7 +220,7 @@ static void show_account_list_window(struct MqttModel * model) {
 		gtk_window_set_icon_from_file (GTK_WINDOW (account_list_window), "./images/logo.png", NULL);
 		gtk_window_set_title (GTK_WINDOW (account_list_window), "Accounts' list");
 		gtk_window_set_resizable (GTK_WINDOW (account_list_window), FALSE);
-		gtk_widget_set_size_request (account_list_window, 400, 550);
+		gtk_window_set_default_size (GTK_WINDOW(account_list_window), 330, 500);
 		g_signal_connect(G_OBJECT(account_list_window), "delete_event", G_CALLBACK(quit), NULL);
 
 		scrolled_window = gtk_scrolled_window_new (NULL,NULL);
@@ -308,10 +321,35 @@ static void add_new_account_handler(GtkButton *button, gpointer user_data) {
 	activate_login_window(user_data);
 }
 
+void hide_loading_window() {
+	gtk_widget_hide(loading_window);
+}
+
 static void connection_success() {
 	main_window_activated = FALSE;
-	gtk_widget_hide(account_list_window);
+	//gtk_widget_hide(account_list_window);
+	hide_loading_window();
 	activate_main_window(app, current_protocol, mqtt_listener, account);
+}
+
+static void connection_unsuccessful(int cause) {
+
+	hide_loading_window();
+	char dst[256]="Connection unsuccessful. ";
+	if(cause<0)
+	{
+		strcat(dst, "Server abort connection");
+	}
+	else
+	{
+		strcat(dst, "Error code : ");
+		char str[50];
+		sprintf(str, "%d", cause);
+		strcat(dst, str);
+	}
+
+	show_error(dst);
+	reload_account_list_window();
 }
 
 void reload_account_list_window() {
