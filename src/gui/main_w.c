@@ -472,6 +472,13 @@ void activate_main_window(GtkApplication* app, enum Protocol protocol, struct Mq
 
 	  box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
 	  gtk_box_pack_end (GTK_BOX(box), GTK_WIDGET(stack_switcher), FALSE, TRUE, 0);
+
+	  GList *children = gtk_container_get_children(GTK_CONTAINER(stack_switcher));
+	  do {
+		  g_signal_connect(G_OBJECT(children->data), "enter-notify-event", G_CALLBACK(above_button), NULL);
+		  g_signal_connect(G_OBJECT(children->data), "leave-notify-event", G_CALLBACK(out_of_button), NULL);
+	  } while((children = g_list_next(children)) != NULL);
+
 	  gtk_box_pack_start (GTK_BOX(box), GTK_WIDGET(stack), TRUE, TRUE, 0);
 	  gtk_container_add (GTK_CONTAINER (main_window), box);
 	  gtk_container_set_focus_child(GTK_CONTAINER (main_window), box);
