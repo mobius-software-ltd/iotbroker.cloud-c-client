@@ -66,11 +66,14 @@ static void show_app_window(){
 }
 
 static void show_error(const gchar * error_message) {
+
+  hide_loading_window();
   main_window_activated = FALSE;
   GtkWidget *dialog = gtk_message_dialog_new(GTK_WINDOW (account_list_window), GTK_DIALOG_DESTROY_WITH_PARENT, GTK_MESSAGE_ERROR, GTK_BUTTONS_OK, "%s", error_message);
   gtk_window_set_title(GTK_WINDOW(dialog), "Error");
   gtk_dialog_run(GTK_DIALOG(dialog));
   gtk_widget_destroy(dialog);
+  reload_account_list_window();
 }
 
 
@@ -334,7 +337,7 @@ static void connection_success() {
 
 static void connection_unsuccessful(int cause) {
 
-	hide_loading_window();
+
 	char dst[256]="Connection unsuccessful. ";
 	if(cause<0)
 	{
@@ -349,7 +352,7 @@ static void connection_unsuccessful(int cause) {
 	}
 
 	show_error(dst);
-	reload_account_list_window();
+
 }
 
 void reload_account_list_window() {

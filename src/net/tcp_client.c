@@ -72,6 +72,7 @@ int init_net_service(const char * host, int port, int sock_type, struct TcpListe
 }
 
 void stop_net_service() {
+	dyad_update();
 	dyad_shutdown();
 }
 
