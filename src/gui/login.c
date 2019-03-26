@@ -322,6 +322,11 @@ static void login_button_handle(GtkWidget *widget, gpointer data) {
 			account->will = NULL;
 		}
 		else {
+			if(current_protocol == MQTT_SN && strlen(will)>1399)
+			{
+				show_error("Content of will for MQTT-SN MUST be < 1400 characters", FALSE);
+				return;
+			}
 			account->will = will;
 		}
 		//will topic
