@@ -270,6 +270,7 @@ static void show_account_list_window(struct MqttModel * model) {
 			gtk_widget_set_halign (button, GTK_ALIGN_FILL);
 			gtk_widget_set_hexpand(button, TRUE);
 			gtk_widget_set_name (button, "account");
+			gtk_button_set_alignment(button,0,0);
 			g_signal_connect(G_OBJECT(button), "clicked", G_CALLBACK(activate_main_window_default), model -> account);
 
 			grid = gtk_grid_new ();
