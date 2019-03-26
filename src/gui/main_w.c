@@ -89,7 +89,13 @@ static void show_dialog_window(GtkWidget *widget, GdkEvent  *event, gpointer use
 
 	GtkWidget * _box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 1);
 
-	text_view = gtk_text_view_new ();
+	GtkTextBuffer *buffer;
+	buffer = gtk_text_buffer_new (NULL);
+	gchar * text = gtk_entry_get_text(GTK_ENTRY(content_entry));
+
+	gtk_text_buffer_set_text(buffer,text, strlen(text));
+	text_view = gtk_text_view_new_with_buffer (buffer);
+
 	gtk_container_add(GTK_CONTAINER(scrolled_window), text_view);
 	gtk_box_pack_start(GTK_BOX(_box), GTK_WIDGET(scrolled_window), TRUE, TRUE, 1);
 
