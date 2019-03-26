@@ -279,6 +279,13 @@ static void login_button_handle(GtkWidget *widget, gpointer data) {
 		}
 		else
 		{
+			//check is clientid already exist
+			if(is_account_with_client_id_exist(client_id))
+			{
+				show_error("Account with this client ID already present in DB", FALSE);
+				return;
+			}
+
 			account->client_id = client_id;
 		}
 		//host

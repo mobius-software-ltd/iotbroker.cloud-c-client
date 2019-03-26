@@ -46,6 +46,7 @@ void insert_data (GdaConnection *cnc, struct Account * account);
 void set_account_default(int id);
 void remove_account_from_db(int id);
 void remove_account_topics_from_db(int id);
+gboolean is_account_with_client_id_exist (char * client_id);
 
 
 
