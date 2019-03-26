@@ -45,6 +45,7 @@ void create_account_table_if_not_exist (GdaConnection *cnc);
 void insert_data (GdaConnection *cnc, struct Account * account);
 void set_account_default(int id);
 void remove_account_from_db(int id);
+void remove_account_topics_from_db(int id);
 
 
 

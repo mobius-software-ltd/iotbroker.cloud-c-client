@@ -304,6 +304,16 @@ void remove_account_messages_from_db(int id) {
 	run_sql_non_select(cnc, str1);
 }
 
+void remove_account_topics_from_db(int id) {
+	gchar str1 [256] = {};
+	char account_id_string [3];
+	sprintf(account_id_string, "%d", id);
+	//remove topics
+	strcat(str1, "DELETE FROM topic WHERE topic_account=");
+	strcat(str1, account_id_string);
+	run_sql_non_select(cnc, str1);
+}
+
 
 static void remove_topic (GdaConnection *cnc, const char * topic_name)
 {

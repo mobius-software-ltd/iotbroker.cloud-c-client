@@ -154,7 +154,7 @@ static void log_out_handle () {
 
 	if(account->clean_session)
 	{
-		remove_account_messages_from_db(account->id);
+		remove_account_topics_from_db(account->id);
 	}
 
 	mqtt_listener->send_disconnect();
