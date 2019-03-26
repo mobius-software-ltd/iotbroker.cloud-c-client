@@ -174,7 +174,8 @@ static void show_dialog_window(GtkWidget *widget, GdkEvent  *event, gpointer use
 	GtkWidget *dialog_window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
 	gtk_window_set_title (GTK_WINDOW (dialog_window), "Enter data");
 	gtk_window_set_resizable (GTK_WINDOW (dialog_window), FALSE);
-	gtk_widget_set_size_request (dialog_window, 700, 500);
+	gtk_widget_set_size_request (dialog_window, 300, 300);
+	gtk_window_set_position (GTK_WINDOW (dialog_window), GTK_WIN_POS_CENTER);
 
 	GtkWidget * _box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 1);
 
@@ -454,7 +455,7 @@ void activate_login_window(GtkApplication* application) {
 		gtk_widget_set_name (login_window, "login_window");
 		gtk_window_set_title (GTK_WINDOW (login_window), "IOT Broker C client");
 		gtk_window_set_resizable (GTK_WINDOW (login_window), FALSE);
-		gtk_window_set_default_size (GTK_WINDOW (login_window), 280, 400);
+		gtk_window_set_default_size (GTK_WINDOW (login_window), 290, 400);
 		g_signal_connect(G_OBJECT(login_window), "delete_event", G_CALLBACK(quit_to_list_accounts), mqtt_listener);
 
 		GtkWidget *box, *grid, *separator, *label, *chooser, *entry, *switcher, *spin, *button;
@@ -462,6 +463,7 @@ void activate_login_window(GtkApplication* application) {
 		int i = 0;
 		box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 1);
 		grid = gtk_grid_new();
+		g_object_set (grid, "margin", 10, NULL);
 		//gtk_grid_set_column_homogeneous(GTK_GRID(grid), TRUE);
 		gtk_grid_set_row_spacing(GTK_GRID(grid), 2);
 		gtk_widget_set_name (grid, "white_grid");
@@ -689,7 +691,7 @@ void activate_login_window(GtkApplication* application) {
 		gtk_widget_set_name (button, "log_in");
 		g_signal_connect(button, "clicked", G_CALLBACK (login_button_handle), grid);
 
-		gtk_box_pack_end(GTK_BOX(box), GTK_WIDGET(button), FALSE, TRUE, 1);
+		gtk_box_pack_end(GTK_BOX(box), GTK_WIDGET(button), FALSE, TRUE, 0);
 
 		gtk_container_add(GTK_CONTAINER(login_window), box);
 		gtk_widget_show_all(login_window);

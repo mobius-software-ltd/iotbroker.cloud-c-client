@@ -84,7 +84,8 @@ static void show_dialog_window(GtkWidget *widget, GdkEvent  *event, gpointer use
 	GtkWidget *dialog_window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
 	gtk_window_set_title (GTK_WINDOW (dialog_window), "Enter data");
 	gtk_window_set_resizable (GTK_WINDOW (dialog_window), FALSE);
-	gtk_widget_set_size_request (dialog_window, 700, 500);
+	gtk_widget_set_size_request (dialog_window, 300, 300);
+	gtk_window_set_position (GTK_WINDOW (dialog_window), GTK_WIN_POS_CENTER);
 
 	GtkWidget * _box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 1);
 
@@ -210,8 +211,8 @@ void add_topics_to_list_box (const char * topic_name, int qos) {
 	gtk_grid_attach (GTK_GRID (grid), button, 2, 0, 1, 1);
 	g_object_set (grid, "margin", 10, NULL);
 
-	gtk_container_add(GTK_CONTAINER(topics_box), grid);
-	gtk_container_add(GTK_CONTAINER(topics_box), separator);
+	gtk_list_box_insert(GTK_CONTAINER(topics_box), grid, 1);
+	gtk_list_box_insert(GTK_CONTAINER(topics_box), separator, 0);
 	gtk_widget_show_all(topics_box);
 
 }
@@ -510,16 +511,22 @@ void add_topic_button_handle(GtkWidget *widget, gpointer data) {
 
 	//topic
 	GtkWidget * curr_widget = gtk_grid_get_child_at(GTK_GRID(grid), 2, 0);
-	const gchar * topic_name = gtk_entry_get_text(GTK_ENTRY(curr_widget));
+
+	const gchar * topic_name_current = gtk_entry_get_text(GTK_ENTRY(curr_widget));
+	const gchar * topic_name = (char *) malloc(strlen(topic_name_current)+1);
+	memcpy((char*)topic_name, (char*)topic_name_current, strlen(topic_name_current) + 1);
 	if(strlen(topic_name) == 0 || strcmp("Enter topic",topic_name) == 0) {
 		show_error("Please enter topic name");
 		return;
 	}
+	gtk_entry_set_text(GTK_ENTRY(curr_widget),"");
 
 	curr_widget = gtk_grid_get_child_at(GTK_GRID(grid), 2, 1);
 	int qos = gtk_spin_button_get_value(GTK_SPIN_BUTTON(curr_widget));
 
 	mqtt_listener->send_sub(topic_name, qos);
+
+
 
 }
 
