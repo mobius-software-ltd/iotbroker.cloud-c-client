@@ -93,15 +93,14 @@ gboolean is_account_with_client_id_exist (char * client_id) {
 	stmt = gda_sql_parser_parse_string (parser, sql, NULL, NULL);
 	data_model = gda_connection_statement_execute_select (cnc, stmt, NULL, &error);
 	g_object_unref (stmt);
-		if (!data_model)
-			g_error ("Could not get the default account of the 'account' table: %s\n",
-	                         error && error->message ? error->message : "No detail");
-
-	gint row_number = g_value_get_int(gda_data_model_get_value_at(data_model, 0, 0, NULL));
-	if(row_number == 0)
+	if (!data_model)
+	{
 		return FALSE;
+	}
 	else
+	{
 		return TRUE;
+	}
 }
 
 void create_account_table_if_not_exist (GdaConnection *cnc)
@@ -263,7 +262,7 @@ void insert_topic_data (GdaConnection *cnc, const char * _topic_name, int _qos)
 	data_model = gda_connection_statement_execute_select (cnc, stmt, NULL, &error);
 	g_object_unref (stmt);
 		if (!data_model)
-			g_error ("Could not get the default account of the 'account' table: %s\n",
+			g_error ("Could not get the default account of the 'account' table for inserting: %s\n",
 	                         error && error->message ? error->message : "No detail");
 
 	//gda_data_model_dump (data_model, stdout);
@@ -352,7 +351,7 @@ static void remove_topic (GdaConnection *cnc, const char * topic_name)
 	data_model = gda_connection_statement_execute_select (cnc, stmt, NULL, &error);
 	g_object_unref (stmt);
 		if (!data_model)
-			g_error ("Could not get the default account of the 'account' table: %s\n",
+			g_error ("Could not get the default account of the 'account' table for removing topic: %s\n",
 	                         error && error->message ? error->message : "No detail");
 
 	//gda_data_model_dump (data_model, stdout);
@@ -384,7 +383,7 @@ void insert_message_data (GdaConnection *cnc, const char * _content, const char 
 	data_model = gda_connection_statement_execute_select (cnc, stmt, NULL, &error);
 	g_object_unref (stmt);
 		if (!data_model)
-			g_error ("Could not get the default account of the 'account' table: %s\n",
+			g_error ("Could not get the default account of the 'account' table for inserting messages: %s\n",
 	                         error && error->message ? error->message : "No detail");
 
 	//gda_data_model_dump (data_model, stdout);
