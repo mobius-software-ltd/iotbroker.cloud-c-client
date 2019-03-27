@@ -19,8 +19,9 @@
 */
 #include <stdlib.h>
 #include <stdio.h>
-
+#include <gtk/gtk.h>
 #include <string.h>
+#include <openssl/ssl.h>
 #include "mqtt/packets/connack.h"
 #include "mqtt/packets/connect.h"
 #include "mqtt/packets/message.h"
@@ -35,6 +36,7 @@
 #include "mqtt/packets/unsuback.h"
 #include "mqtt/packets/unsubscribe.h"
 
+static char * password;
 char * utf8_check(char *s) {
 	while (*s) {
 		if (*s < 0x80)
@@ -148,12 +150,73 @@ void reverse (unsigned char * a, int len) {
 	    i--;
 	    j++;
 	  }
-//	  for(int o = 0; o < len; o++)
-//		  printf("<<<%x>>>", a[o]);
-//	  unsigned char * b = malloc(len * sizeof(char));
-//	  for(int k = 0; k < len; k++)
-//		b[k] = a[k];
-//	  free(a);
-//
-//	  return b;
+}
+
+static int passwd_cb(char *buf,int size, int rwflag, void *userdata)
+{
+
+	  int password_length;
+
+	  password_length = strlen(password);
+
+	  if ((password_length + 1) > size) {
+	    printf("Password specified by environment variable is too big\n");
+	    return 0;
+	  }
+
+	  strcpy(buf,password);
+	  return password_length;
+
+}
+
+gboolean is_cert_valid(const char * cert, const char * cert_password) {
+
+	if(cert_password != NULL)
+		password = cert_password;
+	else
+		password ="";
+	char file_name_template [] = "/tmp/c_client_temp.XXXXXX";
+	char * filename = NULL;
+	OpenSSL_add_ssl_algorithms();
+	SSL_load_error_strings();
+	SSL_CTX *ctx;
+	ctx = SSL_CTX_new(DTLSv1_2_client_method());
+	if(cert != NULL) {
+
+			filename = malloc((strlen(file_name_template) + 1) * sizeof(char));
+			strcpy(filename, file_name_template);
+			int file_d = mkstemp(filename);
+			if (file_d == -1) {
+				printf("cannot open file!!!\n");
+				return FALSE;
+			}
+			int size_data = write(file_d, cert, strlen(cert));
+			if(size_data <= 0) {
+				printf("Error : Cannot write certificate in file!!!\n");
+				close(file_d);
+				unlink(filename);
+				return FALSE;
+			}
+			close(file_d);
+
+			if (!SSL_CTX_use_certificate_file(ctx, filename, SSL_FILETYPE_PEM))
+				printf("\nERROR: no certificate found!");
+
+			SSL_CTX_set_default_passwd_cb(ctx, passwd_cb);
+
+			if (!SSL_CTX_use_PrivateKey_file(ctx, filename, SSL_FILETYPE_PEM))
+			{
+				printf("\nERROR: no private key found!");
+				return FALSE;
+			}
+
+
+
+			if (!SSL_CTX_check_private_key (ctx))
+			{
+				printf("\nERROR: invalid private key!");
+				return FALSE;
+			}
+		}
+	return TRUE;
 }

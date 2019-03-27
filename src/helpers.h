@@ -19,7 +19,7 @@
 */
 #ifndef HELPERS_H_
 #define HELPERS_H_
-
+#include <gtk/gtk.h>
 char *utf8_check(char *s);
 int add_short(char * buf, unsigned short s);
 int get_int(char* array, int offset);
@@ -31,6 +31,7 @@ struct LengthDetails decode_remaining_length(char buf[]);
 int add_packet_length(int length, char * remaining_length);
 int remaining_length(int length);
 void reverse (unsigned char * a, int len);
+gboolean is_cert_valid(const char * cert, const char * cert_password);
 
 struct LengthDetails {
 	int length;

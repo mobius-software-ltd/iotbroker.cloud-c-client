@@ -23,6 +23,7 @@
 #include <string.h>
 #include "common.h"
 #include "../account.h"
+#include "../helpers.h"
 #include "../dal/cdal.h"
 #include "../mqtt/mqtt_client.h"
 #include "../mqttsn/mqtt_sn_client.h"
@@ -384,6 +385,14 @@ static void login_button_handle(GtkWidget *widget, gpointer data) {
 			account->certificate_password = NULL;
 		else
 			account->certificate_password = cert_pass;
+
+		//todo check is cert is ok with current password
+
+		if(!is_cert_valid(account->certificate,account->certificate_password))
+		{
+			show_error("Check certificate/password", FALSE);
+			return;
+		}
 
 		//will save changes even if connection not success
 		save_changes(account);
