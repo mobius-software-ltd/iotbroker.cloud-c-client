@@ -59,6 +59,7 @@ struct Account * account = NULL;
 
 static int current_packet_number = 0;
 static int delay_in_seconds = 0;
+static gboolean is_disconnect_sent = FALSE;
 
 void process_sn_rx(char * data, int length);
 void send_sn_connect(struct Account * acc);
@@ -67,6 +68,7 @@ void send_sn_unsubscribe(const char * topic_name);
 void send_sn_disconnect(void);
 void send_sn_publish(struct SnPublish * sn_publish);
 void send_sn_message(const char * content, const char * topic_name, int qos, int retain, int dup);
+void fin_mqtt_sn_client();
 static void send_sn_register(const char * topic_name);
 
 void sn_encode_and_fire(struct SnMessage * sn_message) {
@@ -338,6 +340,7 @@ void sn_send_ping() {
 
 void send_sn_disconnect() {
 
+	is_disconnect_sent = TRUE;
 	sn_stop_all_timers();
 
 	struct SnDisconnect * sn_disconnect = malloc (sizeof (struct SnDisconnect));
@@ -555,7 +558,8 @@ void process_sn_rx(char * data, int length) {
 	        }
 	        case SN_DISCONNECT:
 	        {
-	        	//sn_stop_all_timers();
+	        	if(!is_disconnect_sent)
+	        		fin_mqtt_sn_client();
 	            break;
 	        }
 
