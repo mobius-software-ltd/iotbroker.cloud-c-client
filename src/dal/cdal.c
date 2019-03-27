@@ -87,20 +87,24 @@ gboolean is_account_with_client_id_exist (char * client_id) {
 	GError *error = NULL;
 
 	gchar sql [256] = {};
-	strcat(sql, "SELECT COUNT(*) FROM account WHERE client_id=");
+	strcat(sql, "SELECT COUNT(*) FROM account WHERE client_id='");
 	strcat(sql, client_id);
+	strcat(sql, "'");
 	parser = g_object_get_data (G_OBJECT (cnc), "parser");
 	stmt = gda_sql_parser_parse_string (parser, sql, NULL, NULL);
 	data_model = gda_connection_statement_execute_select (cnc, stmt, NULL, &error);
 	g_object_unref (stmt);
 	if (!data_model)
-	{
+	g_object_unref (stmt);
+	if (!data_model)
+		g_error ("Could not get the default account of the 'account' table: %s\n",
+						 error && error->message ? error->message : "No detail");
+
+	gint is_present = g_value_get_int(gda_data_model_get_value_at(data_model, 0, 0, NULL));
+	if(is_present == 0)
 		return FALSE;
-	}
 	else
-	{
 		return TRUE;
-	}
 }
 
 void create_account_table_if_not_exist (GdaConnection *cnc)
