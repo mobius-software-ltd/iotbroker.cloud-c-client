@@ -218,7 +218,7 @@ void add_topics_to_list_box (const char * topic_name, int qos) {
 	g_object_set (grid, "margin", 10, NULL);
 
 	gtk_list_box_insert(GTK_CONTAINER(topics_box), grid, 1);
-	gtk_list_box_insert(GTK_CONTAINER(topics_box), separator, 0);
+	gtk_list_box_insert(GTK_CONTAINER(topics_box), separator,2);
 	gtk_widget_show_all(topics_box);
 
 }
@@ -601,8 +601,10 @@ void remove_topic_from_list_box(const gchar* name)
 {
 	//destroy topic
 	GtkWidget* child = find_child(topics_box, name);
-	if(child != NULL)
+	if(child != NULL) {
+		remove_topic_from_db(name);
 		gtk_widget_destroy(child);
+	}
 	//destroy separator
 	child = find_child(topics_box, name);
 	if(child != NULL)
