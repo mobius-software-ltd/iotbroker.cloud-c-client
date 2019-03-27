@@ -386,7 +386,7 @@ static void login_button_handle(GtkWidget *widget, gpointer data) {
 		else
 			account->certificate_password = cert_pass;
 
-		//todo check is cert is ok with current password
+		//check is cert is ok with current password
 
 		if(!is_cert_valid(account->certificate,account->certificate_password))
 		{

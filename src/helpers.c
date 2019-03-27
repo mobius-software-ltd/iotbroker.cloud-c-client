@@ -200,12 +200,18 @@ gboolean is_cert_valid(const char * cert, const char * cert_password) {
 			close(file_d);
 
 			if (!SSL_CTX_use_certificate_file(ctx, filename, SSL_FILETYPE_PEM))
+			{
+				if(filename!= NULL)
+						unlink(filename);
 				printf("\nERROR: no certificate found!");
+			}
 
 			SSL_CTX_set_default_passwd_cb(ctx, passwd_cb);
 
 			if (!SSL_CTX_use_PrivateKey_file(ctx, filename, SSL_FILETYPE_PEM))
 			{
+				if(filename!= NULL)
+						unlink(filename);
 				printf("\nERROR: no private key found!");
 				return FALSE;
 			}
@@ -215,8 +221,12 @@ gboolean is_cert_valid(const char * cert, const char * cert_password) {
 			if (!SSL_CTX_check_private_key (ctx))
 			{
 				printf("\nERROR: invalid private key!");
+				if(filename!= NULL)
+						unlink(filename);
 				return FALSE;
 			}
 		}
+	if(filename!= NULL)
+			unlink(filename);
 	return TRUE;
 }

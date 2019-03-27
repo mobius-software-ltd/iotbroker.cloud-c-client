@@ -555,7 +555,7 @@ void process_sn_rx(char * data, int length) {
 	        }
 	        case SN_DISCONNECT:
 	        {
-	        	sn_stop_all_timers();
+	        	//sn_stop_all_timers();
 	            break;
 	        }
 

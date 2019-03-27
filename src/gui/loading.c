@@ -46,6 +46,7 @@ static void connection_success();
 static void connection_unsuccessful(int cause);
 void reload_account_list_window();
 void activate_loading_window (GtkApplication* _app, gpointer user_data);
+void hide_loading_window();
 
 struct MqttListener * mqtt_listener;
 enum Protocol current_protocol;

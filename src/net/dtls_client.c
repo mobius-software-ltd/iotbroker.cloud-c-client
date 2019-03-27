@@ -183,6 +183,10 @@ static int start_client(char *remote_address, int port, const char * cert) {
 	connect(fd, (struct sockaddr *) &remote_addr, sizeof(struct sockaddr_in));
 
 	BIO_ctrl(bio, BIO_CTRL_DGRAM_SET_CONNECTED, 0, &remote_addr.ss);
+	timeout.tv_sec = 0;
+	timeout.tv_usec = 700000;
+
+	BIO_ctrl(bio, BIO_CTRL_DGRAM_SET_RECV_TIMEOUT, 0, &timeout);
 
 	SSL_set_bio(ssl, bio, bio);
 	int connection_result = SSL_connect(ssl);
