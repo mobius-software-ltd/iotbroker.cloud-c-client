@@ -77,6 +77,7 @@ void start_coap_ping_timer(unsigned int delay) {
 
 void coap_start_message_timer() {
 
+	messages_map = g_hash_table_new (g_int_hash, g_int_equal);
 	long t = 12;
 	int rc = pthread_create(&messager, NULL, coap_message_resend_task, (void *)t);
 	if (rc) {
