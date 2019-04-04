@@ -23,6 +23,7 @@
 #include <unistd.h>
 #include <pthread.h>
 #include <stdlib.h>
+#include <string.h>
 #include <stdio.h>
 #include "../net/tcp_client.h"
 #include "../mqttsn/mqtt_sn_client.h"
@@ -217,7 +218,11 @@ struct SnMessage * sn_get_message_from_map(unsigned short packet_id) {
 
 unsigned short sn_get_topic_id_from_map(const char * topic_name) {
 
-	gpointer value = g_hash_table_lookup(topic_name_map, topic_name);
+	char* topic_name_str = (char*)malloc((sizeof(char)*strlen(topic_name)+1));
+	strcpy(topic_name_str,topic_name);
+
+	gpointer value = g_hash_table_lookup(topic_name_map, topic_name_str);
+	free(topic_name_str);
 	if(value == NULL)
 	{
 		return 0;
