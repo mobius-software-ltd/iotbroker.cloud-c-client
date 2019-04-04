@@ -716,6 +716,7 @@ void activate_login_window(GtkApplication* application) {
 		mqttWidgets[i++] = label;
 
 		entry = gtk_entry_new();
+		gtk_entry_set_visibility(GTK_ENTRY(entry),FALSE);
 		gtk_entry_set_max_length(GTK_ENTRY(entry), 50);
 		gtk_entry_set_placeholder_text(GTK_ENTRY(entry), "Password");
 		gtk_grid_attach(GTK_GRID(grid), entry, 2, 22, 1, 1);

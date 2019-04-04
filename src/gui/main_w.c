@@ -258,6 +258,7 @@ void update_messages_window (const char * content, const char * topic_name, int 
 	gtk_grid_attach (GTK_GRID (grid), label, 0, 0, 1, 1);
 
 	label = gtk_label_new ("qosinout");
+	g_object_set (label, "margin", 10, NULL);
 
 	if(is_incoming) {
 		if(qos == 0)
