@@ -25,7 +25,8 @@
 
 char * coap_encode(struct CoapMessage * message, int * length) {
 
-	char * buf = malloc(sizeof(char) * 256);
+	int buf_size = 256 + (message->payload != NULL ? strlen(message->payload) : 0);
+	char * buf = malloc(sizeof(char) * buf_size);
 	int i = 0;
 	char first_byte = 0;
 	unsigned short string_length = 0;
@@ -203,7 +204,7 @@ struct CoapMessage * coap_decode(char * buf, int length) {
 	    }
 	    int option_length = next_byte & 15;
 	    if (option_length == 13)
-	    	option_length = (option_length << 8 | buf[j++]) + 13;
+	    	option_length = buf[j++] + 13;
 	    else if (option_length == 14) {
 	    	option_length = get_short(buf, j) + 269;
 	    } else if (option_length < 0 || option_length > 14) {

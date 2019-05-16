@@ -274,7 +274,7 @@ static void login_button_handle(GtkWidget *widget, gpointer data) {
 		//clientID
 		curr_widget = gtk_grid_get_child_at(GTK_GRID(grid), 2, 6);
 		const gchar * client_id = gtk_entry_get_text(GTK_ENTRY(curr_widget));
-		if((strlen(client_id) == 0 || strcmp("Enter Client ID",client_id) ==0) && current_protocol != COAP) {
+		if((strlen(client_id) == 0 || strcmp("Enter Client ID",client_id) ==0)) {
 			show_error("Please enter Client ID", FALSE);
 			return;
 		}
@@ -321,7 +321,7 @@ static void login_button_handle(GtkWidget *widget, gpointer data) {
 		//keepalive
 		curr_widget = gtk_grid_get_child_at(GTK_GRID(grid), 2, 13);
 		const gchar * keepalive_string = gtk_entry_get_text(GTK_ENTRY(curr_widget));
-		if((strlen(keepalive_string) == 0 || strcmp("Enter Keepalive",keepalive_string) ==0) && (current_protocol == MQTT || current_protocol == MQTT_SN || current_protocol == WEBSOCKETS)) {
+		if((strlen(keepalive_string) == 0 || strcmp("Enter Keepalive",keepalive_string) ==0)) {
 			show_error("Please enter keepalive", FALSE);
 			return;
 		} else {

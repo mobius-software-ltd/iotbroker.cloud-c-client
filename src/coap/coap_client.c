@@ -355,11 +355,10 @@ void process_coap_rx(char * data, int length) {
         	send_coap_ack(message, 0);
             return;
         } else {
+        	//store message in db and gui
+        	mqtt_listener->get_pub_pt(content, topic_name, qos, 0, 0);
         	send_coap_ack(message, 1);
         }
-
-        //store message in db and gui
-        mqtt_listener->get_pub_pt(content, topic_name, qos, 0, 0);
     }
 
     switch (message->type)

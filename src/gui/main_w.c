@@ -376,12 +376,10 @@ void activate_main_window(GtkApplication* app, enum Protocol protocol, struct Mq
 	  label = gtk_label_new ("QoS");
 	  gtk_widget_set_halign (label, GTK_ALIGN_START);
 	  gtk_grid_attach (GTK_GRID (grid), label, 1, 1, 1, 1);
-	  GtkWidget *spin_button;
-	  if(current_protocol==MQTT || current_protocol==MQTT_SN || current_protocol==WEBSOCKETS)
-		  spin_button = gtk_spin_button_new_with_range (0, 2, 1);
-	  else
-		  spin_button = gtk_spin_button_new_with_range (0, 1, 1);
-	  gtk_grid_attach (GTK_GRID (grid), spin_button, 2, 1, 1, 1);
+	  int max_qos = 2;
+	  if(current_protocol==AMQP || current_protocol==COAP)
+		  max_qos = 1;
+	  gtk_grid_attach (GTK_GRID (grid), gtk_spin_button_new_with_range (0, max_qos, 1), 2, 1, 1, 1);
 
 
 	  button = gtk_button_new_with_label ("\nAdd\n");
@@ -435,7 +433,7 @@ void activate_main_window(GtkApplication* app, enum Protocol protocol, struct Mq
 	  gtk_widget_set_hexpand (label, TRUE);
 	  gtk_widget_set_halign (label, GTK_ALIGN_START);
 	  gtk_grid_attach (GTK_GRID (grid), label, 1, 2, 1, 1);
-	  gtk_grid_attach (GTK_GRID (grid), gtk_spin_button_new_with_range (0, 2, 1), 2, 2, 1, 1);
+	  gtk_grid_attach (GTK_GRID (grid), gtk_spin_button_new_with_range (0, max_qos, 1), 2, 2, 1, 1);
 
 	  if(current_protocol==MQTT || current_protocol==MQTT_SN || current_protocol==WEBSOCKETS) {
 
