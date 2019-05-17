@@ -143,7 +143,9 @@ static int callback_minimal_broker(struct lws *wsi, enum lws_callback_reasons re
 	break;
 	case LWS_CALLBACK_CLIENT_WRITEABLE: {
 		int s_len = strlen((char *)pending_data);
-		lws_write(vhd->client_wsi, pending_data, s_len, LWS_WRITE_TEXT);
+		char buf[LWS_PRE + s_len];
+		memcpy(&buf[LWS_PRE],pending_data, s_len);
+		lws_write(vhd->client_wsi, &buf[LWS_PRE], s_len, LWS_WRITE_TEXT);
 	}
 	break;
 	case LWS_CALLBACK_RAW_WRITEABLE: {

@@ -581,7 +581,7 @@ void send_message_button_handle (GtkWidget *widget, gpointer data) {
 
 	int retain = 0;
 	int dup = 0;
-	if(current_protocol==MQTT || current_protocol==MQTT_SN) {
+	if(current_protocol==MQTT || current_protocol==MQTT_SN || current_protocol==WEBSOCKETS) {
 	curr_widget = gtk_grid_get_child_at(GTK_GRID(grid), 2, 3);
 	retain = gtk_switch_get_state(GTK_SWITCH(curr_widget));
 
