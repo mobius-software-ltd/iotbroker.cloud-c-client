@@ -78,6 +78,9 @@ void amqp_encode_and_fire(struct AmqpHeader * header) {
 	raw_fire(buf,total_length);
 }
 
+void stop_amqp_client() {
+	amqp_stop_all_timers();
+}
 
 int init_amqp_client(struct Account * acc, struct MqttListener * listener) {
 
@@ -92,6 +95,7 @@ int init_amqp_client(struct Account * acc, struct MqttListener * listener) {
 
 	tcp_listener = malloc (sizeof (struct TcpListener));
 	tcp_listener->prd_pt = amqp_data_received;
+	tcp_listener->stop_pt = stop_amqp_client;
 	int is_successful = open_lws_net_connection(acc->server_host, acc->server_port, tcp_listener, acc->is_secure, acc->certificate, acc->certificate_password, acc->protocol);
 	if (is_successful >= 0) {
 		printf("AMQP client successfully connected :  %i \n", is_successful);
