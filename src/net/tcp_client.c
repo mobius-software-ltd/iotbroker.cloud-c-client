@@ -37,6 +37,7 @@ void *update_dyad(void *threadid)
 		dyad_update();
 	}
 	dyad_shutdown();
+	tcp_listener->stop_pt();
 	printf("Net service stopped.\n");
 	return 0;
 }

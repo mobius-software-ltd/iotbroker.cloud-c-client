@@ -59,9 +59,8 @@ static void * net_service_task(void *thread_id)
 {
 	int n = 0;
 	while (n >= 0 && !interrupted) {
-		n = lws_service(context, 1000);
+		n = lws_service(context, 500);
 	}
-	lws_service(context, 1000);
 	lws_context_destroy(context);
 	printf("Net service stopped\n");
 	//pthread_cancel(worker);

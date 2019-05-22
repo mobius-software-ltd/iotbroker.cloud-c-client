@@ -343,7 +343,13 @@ static void connection_unsuccessful(int cause) {
 	char dst[256]="Connection unsuccessful. ";
 	if(cause<0)
 	{
-		strcat(dst, "Server abort connection");
+		if(current_protocol == COAP) {
+			strcat(dst, "Incorrect host/port");
+		}
+		else
+		{
+			strcat(dst, "Server abort connection");
+		}
 	}
 	else
 	{

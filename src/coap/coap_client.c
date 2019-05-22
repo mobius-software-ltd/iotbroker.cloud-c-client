@@ -40,6 +40,7 @@ static struct Account * account = NULL;
 
 static int current_packet_number = 0;
 static int delay_in_seconds = 0;
+static int init_connect = 0;
 
 void process_coap_rx(char * data, int length);
 void coap_connect(struct Account * acc);
@@ -47,6 +48,7 @@ void send_coap_subscribe(const char * topic_name, int qos);
 void send_coap_message(const char * content, const char * topic_name, int qos, int retain, int dup);
 void send_coap_unsubscribe(const char * topic_name);
 void send_coap_disconnect();
+void fin_coap_client();
 
 void coap_encode_and_fire(struct CoapMessage * coap_message) {
 	//encode
@@ -74,34 +76,27 @@ int init_coap_client(struct Account * acc, struct MqttListener * listener) {
 	int port = acc->server_port;
 	tcp_listener = malloc (sizeof (struct TcpListener));
 	tcp_listener->prd_pt = process_coap_rx;
-	int is_successful = 0;
-	if(!acc->is_secure)
+	tcp_listener->stop_pt = fin_coap_client;
+	if(!acc->is_secure) {
 		init_net_service(host, port, UDP_PROTOCOL, tcp_listener);
-	else
+	}
+	else {
 		init_dtls(host, port, tcp_listener, acc->certificate, acc->certificate_password);
-
-	if (is_successful >= 0) {
-		printf("COAP client successfully connected \n");
 	}
-	else
-	{
-		printf("COAP client NOT connected \n");
-	}
-	return is_successful;
 
+		printf("COAP client initialized \n");
+	return 0;
 }
 
 
 void coap_connect(struct Account * acc) {
 
-	mqtt_listener->cs_pt();
-	start_coap_ping_timer((unsigned int)delay_in_seconds);
-	coap_start_message_timer();
-
+	init_connect = 1;
+	coap_send_ping();
+	//start_coap_connect_timer();
 }
 
 void send_coap_disconnect() {
-
 	coap_stop_all_timers();
 	if(account->is_secure)
 		stop_dtls_net_service();
@@ -326,6 +321,13 @@ void send_coap_ack(struct CoapMessage * in_message, int is_ok) {
 
 void process_coap_rx(char * data, int length) {
 
+	if(init_connect) {
+		mqtt_listener->cs_pt();
+		start_coap_ping_timer((unsigned int)delay_in_seconds);
+		coap_start_message_timer();
+		init_connect = 0;
+	}
+
 	struct CoapMessage * message = coap_decode(data, length);
 	if(message == NULL) {
 		printf("Error : Cannot decode COAP message...\n");
@@ -452,5 +454,12 @@ void process_coap_rx(char * data, int length) {
             break;
     }
 
+}
+
+void fin_coap_client() {
+	if(init_connect == 1) {
+		mqtt_listener->cu_pt(-1);
+		init_connect = 0;
+	}
 }
 

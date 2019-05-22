@@ -377,7 +377,7 @@ void process_rx(char * data, int length) {
 			struct Unsuback * us = (struct Unsuback*) message->packet;
 			struct Message * m = get_message_from_map(us->packet_id);
 			if(m == NULL) {
-				printf("Cannot get Unsubscribe from map after unsubscribe for id : %i \n", us->packet_id);
+				//printf("Cannot get Unsubscribe from map after unsubscribe for id : %i \n", us->packet_id);
 				break;
 			}
 

@@ -231,9 +231,9 @@ struct CoapMessage * coap_decode(char * buf, int length) {
 
 	if (readable_bytes > 0 && buf[++i] !=0x00)
 	{
-		char * payload_value = malloc (sizeof (payload_value)*(readable_bytes+1));
-		memcpy(payload_value, &buf[i], readable_bytes);
-		payload_value[readable_bytes] = '\0';
+		char * payload_value = malloc (sizeof (payload_value)*(readable_bytes));
+		memcpy(payload_value, &buf[i], readable_bytes-1);
+		payload_value[readable_bytes-1] = '\0';
 		message->payload = payload_value;
 	}
 
