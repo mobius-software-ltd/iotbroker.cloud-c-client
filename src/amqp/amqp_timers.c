@@ -126,11 +126,13 @@ void amqp_stop_connect_timer() {
 }
 
 void amqp_stop_ping_timer() {
-	g_hash_table_destroy(m_handler);
-	g_hash_table_destroy(m_delivery_id);
-	g_hash_table_destroy(topic_name_map);
-	g_hash_table_destroy(topic_name_map_outgoing);
-	g_hash_table_destroy(reverse_topic_name_map);
+	if(m_handler!=NULL) {
+		g_hash_table_destroy(m_handler);
+		g_hash_table_destroy(m_delivery_id);
+		g_hash_table_destroy(topic_name_map);
+		g_hash_table_destroy(topic_name_map_outgoing);
+		g_hash_table_destroy(reverse_topic_name_map);
+	}
 	pthread_cancel(pinger);
 }
 
@@ -236,14 +238,16 @@ void amqp_add_handler_in_map_outgoing(const char * topic_name, unsigned short ha
 
 	int* handler_int = (int*)malloc(sizeof(int));
 	handler_int[0] = handler;
-	g_hash_table_insert (topic_name_map, (char*)topic_name, handler_int);
+	g_hash_table_insert (topic_name_map_outgoing, (char*)topic_name, handler_int);
 
 }
 
 void amqp_add_topic_name_in_map(unsigned short handler, const char * topic_name) {
 
-	int handler_int = handler;
-	g_hash_table_insert (reverse_topic_name_map, &handler_int, (char*)topic_name);
+
+	int* handler_int = (int*)malloc(sizeof(int));
+	handler_int[0] = handler;
+	g_hash_table_insert (reverse_topic_name_map, handler_int, (char*)topic_name);
 
 }
 

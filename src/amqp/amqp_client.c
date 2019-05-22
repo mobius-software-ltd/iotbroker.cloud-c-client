@@ -218,7 +218,9 @@ void send_amqp_begin() {
 }
 
 void send_amqp_end () {
-
+	next_handle=1;
+	packet_id_counter = 1;
+	channel = 0;
 	struct AmqpHeader * header = malloc (sizeof (struct AmqpHeader));
 	header->code = END;
 	header->packet = NULL;
@@ -718,7 +720,8 @@ void process_amqp_rx(char * data, int readable_bytes) {
 			if(outcome->outcome_code == OK) {
 				send_amqp_proto_header(0);
 			} else {
-				printf("Errore of Outcome : %x\n", outcome->outcome_code);
+				//printf("Errore of Outcome : %x\n", outcome->outcome_code);
+				mqtt_listener->cu_pt(outcome->outcome_code);
 			}
 
 			break;
