@@ -152,7 +152,7 @@ void amqp_add_message_in_map_by_delivery_id(unsigned short delivery_id, struct A
 
 	int* delivery_id_int = (int*)malloc(sizeof(int));
 	delivery_id_int[0] = delivery_id;
-	g_hash_table_insert (m_handler, delivery_id_int, message);
+	g_hash_table_insert (m_delivery_id, delivery_id_int, message);
 
 }
 

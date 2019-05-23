@@ -18,6 +18,7 @@
 * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 */
 #include <libwebsockets.h>
+#include <glib.h>
 #include <string.h>
 #include <signal.h>
 #include <jansson.h>
@@ -25,6 +26,7 @@
 #include <unistd.h>
 #include "../tcp_listener.h"
 #include "../account.h"
+#include "data.h"
 
 static char file_name_template [] = "/tmp/c_client_temp.XXXXXX";
 int interrupted;
@@ -39,8 +41,7 @@ static char * filename = NULL;
 
 static enum Protocol current_protocol;
 
-static unsigned char * pending_data;
-static int pending_len;
+static GQueue *q = NULL;
 
 struct per_vhost_data__minimal {
 	struct lws_context *context;
@@ -64,6 +65,8 @@ static void * net_service_task(void *thread_id)
 	lws_context_destroy(context);
 	printf("Net service stopped\n");
 	//pthread_cancel(worker);
+	g_queue_free(q);
+	q=NULL;
 	vhd = NULL;
 	context = NULL;
 	interrupted = 0;
@@ -141,14 +144,22 @@ static int callback_minimal_broker(struct lws *wsi, enum lws_callback_reasons re
 	}
 	break;
 	case LWS_CALLBACK_CLIENT_WRITEABLE: {
-		int s_len = strlen((char *)pending_data);
-		char buf[LWS_PRE + s_len];
-		memcpy(&buf[LWS_PRE],pending_data, s_len);
-		lws_write(vhd->client_wsi, &buf[LWS_PRE], s_len, LWS_WRITE_TEXT);
+
+		struct DataWrapper * pending_data  = g_queue_pop_head(q);
+		char buf[LWS_PRE + pending_data->length];
+		memcpy(&buf[LWS_PRE],pending_data->data, pending_data->length);
+		lws_write(vhd->client_wsi, &buf[LWS_PRE], pending_data->length, LWS_WRITE_TEXT);
+		if(!g_queue_is_empty(q))
+			lws_callback_on_writable(vhd->client_wsi);
+
 	}
 	break;
 	case LWS_CALLBACK_RAW_WRITEABLE: {
-		lws_write(vhd->client_wsi, pending_data, pending_len, LWS_WRITE_RAW);
+
+		struct DataWrapper * pending_data  = g_queue_pop_head(q);
+		lws_write(vhd->client_wsi, pending_data->data, pending_data->length , LWS_WRITE_RAW);
+		if(!g_queue_is_empty(q))
+			lws_callback_on_writable(vhd->client_wsi);
 	}
 	break;
 
@@ -180,6 +191,8 @@ static void sigint_handler(int sig)
 
 int open_lws_net_connection(const char * host, int port, struct TcpListener * client,
 		int _is_secure, const char * cert, const char * cert_password, enum Protocol protocol) {
+
+	q = g_queue_new();
 
 	current_protocol = protocol;
 	tcp_listener = client;
@@ -253,15 +266,20 @@ int open_lws_net_connection(const char * host, int port, struct TcpListener * cl
 
 void fire(char * s) {
 
-	pending_data = (unsigned char*) s;
+	struct DataWrapper * data = malloc (sizeof (struct DataWrapper));
+	data->data = s;
+	data->length = strlen(s);
+	g_queue_push_tail(q, data);
 	lws_callback_on_writable(vhd->client_wsi);
 
 }
 
 void raw_fire(char * s, int len) {
 
-	pending_data = (unsigned char*) s;
-	pending_len = len;
+	struct DataWrapper * data = malloc (sizeof (struct DataWrapper));
+	data->data = s;
+	data->length = len;
+	g_queue_push_tail(q, data);
 	lws_callback_on_writable(vhd->client_wsi);
 
 }
