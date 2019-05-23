@@ -176,6 +176,7 @@ static void usubscribe_button_handle (GtkWidget *widget, gpointer data){
 	const char * topic_name = gtk_label_get_text(GTK_LABEL(curr_widget));
 	curr_widget = gtk_grid_get_child_at(GTK_GRID(data), 2, 0);
 	mqtt_listener->send_unsubscribe(topic_name);
+	usleep (300000);
 }
 
 void add_topics_to_list_box (const char * topic_name, int qos) {
@@ -368,6 +369,7 @@ void activate_main_window(GtkApplication* app, enum Protocol protocol, struct Mq
 	  entry = gtk_entry_new();
 	  gtk_entry_set_placeholder_text(GTK_ENTRY (entry), "Enter topic");
 	  gtk_grid_attach (GTK_GRID (grid), entry, 2, 0, 1, 1);
+	  gtk_grid_attach (GTK_GRID (grid), gtk_label_new ("  "), 3, 0, 1, 1);
 
 	  label = gtk_label_new ("");
 	  gtk_widget_set_name (label, "settings");
@@ -387,6 +389,7 @@ void activate_main_window(GtkApplication* app, enum Protocol protocol, struct Mq
 		  max_qos = 1;
 
 	  gtk_grid_attach (GTK_GRID (grid), gtk_spin_button_new_with_range (min_qos, max_qos, 1), 2, 1, 1, 1);
+	  gtk_grid_attach (GTK_GRID (grid), gtk_label_new ("  "), 3, 1, 1, 1);
 
 
 	  button = gtk_button_new_with_label ("\nAdd\n");
@@ -424,6 +427,7 @@ void activate_main_window(GtkApplication* app, enum Protocol protocol, struct Mq
 	  g_signal_connect(entry, "button-press-event", G_CALLBACK (show_dialog_window), NULL);
 	  gtk_entry_set_placeholder_text(GTK_ENTRY (entry), "Enter content");
 	  gtk_grid_attach (GTK_GRID (grid), entry, 2, 0, 1, 1);
+	  gtk_grid_attach (GTK_GRID (grid), gtk_label_new ("  "), 3, 0, 1, 1);
 
 	  add_settings_image(label, grid, 0, 1);
 
@@ -434,6 +438,7 @@ void activate_main_window(GtkApplication* app, enum Protocol protocol, struct Mq
 	  entry = gtk_entry_new();
 	  gtk_entry_set_placeholder_text(GTK_ENTRY (entry), "Enter Topic");
 	  gtk_grid_attach (GTK_GRID (grid), entry, 2, 1, 1, 1);
+	  gtk_grid_attach (GTK_GRID (grid), gtk_label_new ("  "), 3, 1, 1, 1);
 
 	  add_settings_image(label, grid, 0, 2);
 	  label = gtk_label_new ("QoS");
@@ -441,6 +446,7 @@ void activate_main_window(GtkApplication* app, enum Protocol protocol, struct Mq
 	  gtk_widget_set_halign (label, GTK_ALIGN_START);
 	  gtk_grid_attach (GTK_GRID (grid), label, 1, 2, 1, 1);
 	  gtk_grid_attach (GTK_GRID (grid), gtk_spin_button_new_with_range (min_qos, max_qos, 1), 2, 2, 1, 1);
+	  gtk_grid_attach (GTK_GRID (grid), gtk_label_new ("  "), 3, 2, 1, 1);
 
 	  if(current_protocol==MQTT || current_protocol==MQTT_SN || current_protocol==WEBSOCKETS) {
 
@@ -450,6 +456,7 @@ void activate_main_window(GtkApplication* app, enum Protocol protocol, struct Mq
 		  gtk_widget_set_halign (label, GTK_ALIGN_START);
 		  gtk_grid_attach (GTK_GRID (grid), label, 1, 3, 1, 1);
 		  gtk_grid_attach (GTK_GRID (grid), gtk_switch_new (), 2, 3, 1, 1);
+		  gtk_grid_attach (GTK_GRID (grid), gtk_label_new ("  "), 3, 3, 1, 1);
 
 		  add_settings_image(label, grid, 0, 4);
 		  label = gtk_label_new ("Duplicate");
@@ -457,6 +464,7 @@ void activate_main_window(GtkApplication* app, enum Protocol protocol, struct Mq
 		  gtk_widget_set_halign (label, GTK_ALIGN_START);
 		  gtk_grid_attach (GTK_GRID (grid), label, 1, 4, 1, 1);
 		  gtk_grid_attach (GTK_GRID (grid), gtk_switch_new (), 2, 4, 1, 1);
+		  gtk_grid_attach (GTK_GRID (grid), gtk_label_new ("  "), 3, 4, 1, 1);
 	  }
 
 	  button = gtk_button_new_with_label ("\nSend\n");
