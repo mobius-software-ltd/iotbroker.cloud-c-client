@@ -353,9 +353,11 @@ void activate_main_window(GtkApplication* app, enum Protocol protocol, struct Mq
 	  gtk_stack_add_titled (GTK_STACK(stack), box, "Topic List", "\nTopic List\n");
 
 	  grid = gtk_grid_new ();
+	  gtk_container_set_border_width (GTK_CONTAINER (grid), 5);
 	  gtk_widget_set_name (grid, "white_grid");
-	  //gtk_grid_set_column_homogeneous(GTK_GRID(grid), TRUE);
-	  gtk_box_pack_start (GTK_BOX(box), GTK_WIDGET(grid), FALSE, FALSE, 0);
+	  GtkWidget *frame_wrap = gtk_frame_new( NULL );
+	  gtk_container_add(GTK_CONTAINER(frame_wrap), grid);
+	  gtk_box_pack_start (GTK_BOX(box), GTK_WIDGET(frame_wrap), FALSE, FALSE, 0);
 
 	  label = gtk_label_new ("           ");
 	  gtk_widget_set_hexpand (label, FALSE);
@@ -367,9 +369,9 @@ void activate_main_window(GtkApplication* app, enum Protocol protocol, struct Mq
 	  gtk_widget_set_halign (label, GTK_ALIGN_START);
 	  gtk_grid_attach (GTK_GRID (grid), label, 1, 0, 1, 1);
 	  entry = gtk_entry_new();
+
 	  gtk_entry_set_placeholder_text(GTK_ENTRY (entry), "Enter topic");
 	  gtk_grid_attach (GTK_GRID (grid), entry, 2, 0, 1, 1);
-	  gtk_grid_attach (GTK_GRID (grid), gtk_label_new ("  "), 3, 0, 1, 1);
 
 	  label = gtk_label_new ("");
 	  gtk_widget_set_name (label, "settings");
@@ -389,7 +391,6 @@ void activate_main_window(GtkApplication* app, enum Protocol protocol, struct Mq
 		  max_qos = 1;
 
 	  gtk_grid_attach (GTK_GRID (grid), gtk_spin_button_new_with_range (min_qos, max_qos, 1), 2, 1, 1, 1);
-	  gtk_grid_attach (GTK_GRID (grid), gtk_label_new ("  "), 3, 1, 1, 1);
 
 
 	  button = gtk_button_new_with_label ("\nAdd\n");
@@ -409,10 +410,12 @@ void activate_main_window(GtkApplication* app, enum Protocol protocol, struct Mq
 	  gtk_box_pack_start (GTK_BOX(box), GTK_WIDGET(label), FALSE, FALSE, 0);
 
 	  grid = gtk_grid_new ();
+	  gtk_container_set_border_width (GTK_CONTAINER (grid), 5);
 	  gtk_grid_set_row_spacing(GTK_GRID(grid), 4);
 	  gtk_widget_set_name (grid, "white_grid");
-	  //gtk_grid_set_column_homogeneous(GTK_GRID(grid), TRUE);
-	  gtk_box_pack_start (GTK_BOX(box), GTK_WIDGET(grid), TRUE, TRUE, 1);
+	  frame_wrap = gtk_frame_new( NULL );
+	  gtk_container_add(GTK_CONTAINER(frame_wrap), grid);
+	  gtk_box_pack_start (GTK_BOX(box), GTK_WIDGET(frame_wrap), TRUE, TRUE, 1);
 	  gtk_widget_set_hexpand (grid, TRUE);
 	  gtk_stack_add_titled (GTK_STACK(stack), box, "Send Messa", "Send Messa");
 
@@ -427,7 +430,6 @@ void activate_main_window(GtkApplication* app, enum Protocol protocol, struct Mq
 	  g_signal_connect(entry, "button-press-event", G_CALLBACK (show_dialog_window), NULL);
 	  gtk_entry_set_placeholder_text(GTK_ENTRY (entry), "Enter content");
 	  gtk_grid_attach (GTK_GRID (grid), entry, 2, 0, 1, 1);
-	  gtk_grid_attach (GTK_GRID (grid), gtk_label_new ("  "), 3, 0, 1, 1);
 
 	  add_settings_image(label, grid, 0, 1);
 
@@ -438,7 +440,6 @@ void activate_main_window(GtkApplication* app, enum Protocol protocol, struct Mq
 	  entry = gtk_entry_new();
 	  gtk_entry_set_placeholder_text(GTK_ENTRY (entry), "Enter Topic");
 	  gtk_grid_attach (GTK_GRID (grid), entry, 2, 1, 1, 1);
-	  gtk_grid_attach (GTK_GRID (grid), gtk_label_new ("  "), 3, 1, 1, 1);
 
 	  add_settings_image(label, grid, 0, 2);
 	  label = gtk_label_new ("QoS");
@@ -446,7 +447,6 @@ void activate_main_window(GtkApplication* app, enum Protocol protocol, struct Mq
 	  gtk_widget_set_halign (label, GTK_ALIGN_START);
 	  gtk_grid_attach (GTK_GRID (grid), label, 1, 2, 1, 1);
 	  gtk_grid_attach (GTK_GRID (grid), gtk_spin_button_new_with_range (min_qos, max_qos, 1), 2, 2, 1, 1);
-	  gtk_grid_attach (GTK_GRID (grid), gtk_label_new ("  "), 3, 2, 1, 1);
 
 	  if(current_protocol==MQTT || current_protocol==MQTT_SN || current_protocol==WEBSOCKETS) {
 
@@ -456,7 +456,7 @@ void activate_main_window(GtkApplication* app, enum Protocol protocol, struct Mq
 		  gtk_widget_set_halign (label, GTK_ALIGN_START);
 		  gtk_grid_attach (GTK_GRID (grid), label, 1, 3, 1, 1);
 		  gtk_grid_attach (GTK_GRID (grid), gtk_switch_new (), 2, 3, 1, 1);
-		  gtk_grid_attach (GTK_GRID (grid), gtk_label_new ("  "), 3, 3, 1, 1);
+
 
 		  add_settings_image(label, grid, 0, 4);
 		  label = gtk_label_new ("Duplicate");
@@ -464,7 +464,6 @@ void activate_main_window(GtkApplication* app, enum Protocol protocol, struct Mq
 		  gtk_widget_set_halign (label, GTK_ALIGN_START);
 		  gtk_grid_attach (GTK_GRID (grid), label, 1, 4, 1, 1);
 		  gtk_grid_attach (GTK_GRID (grid), gtk_switch_new (), 2, 4, 1, 1);
-		  gtk_grid_attach (GTK_GRID (grid), gtk_label_new ("  "), 3, 4, 1, 1);
 	  }
 
 	  button = gtk_button_new_with_label ("\nSend\n");

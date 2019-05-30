@@ -2,6 +2,10 @@ grid#white_grid{
   background-color: white;
 }
 
+frame{
+  background-color: white;
+}
+
 label#login_label {
   background-image: url("./images/background.jpg");
 }
