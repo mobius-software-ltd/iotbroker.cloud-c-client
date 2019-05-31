@@ -49,6 +49,11 @@ void send_coap_message(const char * content, const char * topic_name, int qos, i
 void send_coap_unsubscribe(const char * topic_name);
 void send_coap_disconnect();
 void fin_coap_client();
+void coap_send_ping();
+
+gboolean is_coap_init_connect() {
+	return init_connect;
+}
 
 void coap_encode_and_fire(struct CoapMessage * coap_message) {
 	//encode
@@ -77,15 +82,16 @@ int init_coap_client(struct Account * acc, struct MqttListener * listener) {
 	tcp_listener = malloc (sizeof (struct TcpListener));
 	tcp_listener->prd_pt = process_coap_rx;
 	tcp_listener->stop_pt = fin_coap_client;
+	int is_succesful = 0;
 	if(!acc->is_secure) {
-		init_net_service(host, port, UDP_PROTOCOL, tcp_listener);
+		is_succesful = init_net_service(host, port, UDP_PROTOCOL, tcp_listener);
 	}
 	else {
-		init_dtls(host, port, tcp_listener, acc->certificate, acc->certificate_password);
+		is_succesful = init_dtls(host, port, tcp_listener, acc->certificate, acc->certificate_password);
 	}
 
 		printf("COAP client initialized \n");
-	return 0;
+	return is_succesful;
 }
 
 
@@ -93,6 +99,7 @@ void coap_connect(struct Account * acc) {
 
 	init_connect = 1;
 	coap_send_ping();
+	start_coap_connect_timer();
 	//start_coap_connect_timer();
 }
 
@@ -323,6 +330,7 @@ void send_coap_ack(struct CoapMessage * in_message, int is_ok) {
 void process_coap_rx(char * data, int length) {
 
 	if(init_connect) {
+		stop_coap_connect_timer();
 		mqtt_listener->cs_pt();
 		start_coap_ping_timer((unsigned int)delay_in_seconds);
 		coap_start_message_timer();
@@ -458,6 +466,12 @@ void process_coap_rx(char * data, int length) {
 }
 
 void fin_coap_client() {
+
+	if(account->is_secure)
+		stop_dtls_net_service();
+	else
+		stop_net_service();
+
 	if(init_connect == 1) {
 		mqtt_listener->cu_pt(-1);
 		init_connect = 0;

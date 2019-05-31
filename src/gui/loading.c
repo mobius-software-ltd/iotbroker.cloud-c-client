@@ -344,7 +344,7 @@ static void connection_unsuccessful(int cause) {
 	if(cause<0)
 	{
 		if(current_protocol == COAP) {
-			strcat(dst, "Incorrect host/port");
+			strcat(dst, "Incorrect host/port/client_id");
 		}
 		else
 		{

@@ -29,5 +29,7 @@ int init_coap_client(struct Account * acc, struct MqttListener * listener);
 void coap_send_ping(void);
 void coap_encode_and_fire(struct CoapMessage * message);
 void send_coap_disconnect(void);
+gboolean is_coap_init_connect();
+void fin_coap_client();
 
 #endif /* SRC_COAP_COAP_CLIENT_H_ */

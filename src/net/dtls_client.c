@@ -193,13 +193,17 @@ static int start_client(char *remote_address, int port, const char * cert) {
 	if (connection_result < 0) {
 		return -1;
 	}
-
 	/* Set and activate timeouts */
 	timeout.tv_sec = 3;
 	timeout.tv_usec = 0;
 	BIO_ctrl(bio, BIO_CTRL_DGRAM_SET_RECV_TIMEOUT, 0, &timeout);
 
 	//start listener
+
+    struct timeval read_timeout;
+    read_timeout.tv_sec = 1;
+    read_timeout.tv_usec = 10;
+    setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, &read_timeout, sizeof read_timeout);
 
 	long t = 111;
 	int rc = pthread_create(&worker, NULL, update_dtls, (void *)t);

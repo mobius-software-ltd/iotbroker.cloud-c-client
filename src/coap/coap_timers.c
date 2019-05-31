@@ -27,11 +27,36 @@
 #include "../net/tcp_client.h"
 #include "../coap/coap_client.h"
 
+static pthread_t connector;
 static pthread_t pinger;
 static pthread_t messager;
 static unsigned int delay_in_seconds = 10;
 
 static GHashTable *messages_map = NULL;
+
+static void *coap_connect_task(void *arg)
+{
+	sleep(5);
+	if(is_coap_init_connect())
+		fin_coap_client();
+	return 0;
+}
+
+void start_coap_connect_timer() {
+
+	long t = 12;
+	int rc = pthread_create(&connector, NULL, coap_connect_task, (void *)t);
+	if (rc) {
+		printf("ERROR; return code from pthread_create() start_ping_timer is %d\n", rc);
+		fin_coap_client();
+		exit(-1);
+	}
+}
+
+void stop_coap_connect_timer() {
+	pthread_cancel(connector);
+}
+
 
 static void *coap_ping_task(void *arg)
 {
@@ -124,6 +149,7 @@ void coap_remove_message_from_map (unsigned short packet_id) {
 }
 
 void coap_stop_all_timers(){
+	stop_coap_connect_timer();
 	coap_stop_ping_timer();
 	coap_stop_message_timer();
 }

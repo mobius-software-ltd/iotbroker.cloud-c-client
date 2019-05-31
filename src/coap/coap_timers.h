@@ -32,5 +32,7 @@ void coap_stop_all_timers();
 void coap_add_message_in_map(struct CoapMessage * message);
 struct CoapMessage * coap_get_message_from_map(unsigned short packet_id);
 void coap_remove_message_from_map (unsigned short packet_id);
+void start_coap_connect_timer();
+void stop_coap_connect_timer();
 
 #endif /* SRC_COAP_COAP_TIMERS_H_ */
