@@ -127,6 +127,7 @@ void send_coap_subscribe(const char * topic_name, int qos) {
 	message->message_id = ++current_packet_number;
 	char str[5];
 	sprintf(str, "%d", current_packet_number);
+	message->token = malloc (sizeof (char*));
 	message->token = str;
 	message->type = CONFIRMABLE;
 	message->code = GET;

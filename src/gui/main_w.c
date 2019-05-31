@@ -621,12 +621,19 @@ void remove_topic_from_list_box(const gchar* name)
 	GtkWidget* child = find_child(topics_box, name);
 	if(child != NULL) {
 		remove_topic_from_db(name);
+		g_object_ref(child);
+		g_object_ref_sink(child);
+		g_object_unref(child);
 		gtk_widget_destroy(child);
 	}
 	//destroy separator
 	child = find_child(topics_box, name);
-	if(child != NULL)
+	if(child != NULL) {
+		g_object_ref(child);
+		g_object_ref_sink(child);
+		g_object_unref(child);
 		gtk_widget_destroy(child);
+	}
 }
 
 
