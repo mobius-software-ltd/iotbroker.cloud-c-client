@@ -30,10 +30,11 @@
 static dyad_Stream *s;
 static pthread_t worker;
 struct TcpListener * tcp_listener;
+gboolean is_stop = FALSE;
 
 void *update_dyad(void *threadid)
 {
-	while (dyad_getStreamCount() > 0) {
+	while (dyad_getStreamCount() > 0 && !is_stop) {
 		dyad_update();
 	}
 	dyad_shutdown();
@@ -54,6 +55,7 @@ static void onData(dyad_Event *e) {
 
 int init_net_service(const char * host, int port, int sock_type, struct TcpListener * client) {
 
+	is_stop = FALSE;
 	tcp_listener = client;
 	dyad_init();
 
@@ -73,9 +75,10 @@ int init_net_service(const char * host, int port, int sock_type, struct TcpListe
 }
 
 void stop_net_service() {
-	dyad_update();
-	pthread_cancel(worker);
-	dyad_shutdown();
+	is_stop = TRUE;
+	//dyad_update();
+	//pthread_cancel(worker);
+	//dyad_shutdown();
 
 }
 

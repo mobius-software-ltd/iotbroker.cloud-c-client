@@ -22,6 +22,9 @@
 #include <gtk/gtk.h>
 #include <string.h>
 #include <openssl/ssl.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netdb.h>
 #include "mqtt/packets/connack.h"
 #include "mqtt/packets/connect.h"
 #include "mqtt/packets/message.h"
@@ -229,4 +232,21 @@ gboolean is_cert_valid(const char * cert, const char * cert_password) {
 	if(filename!= NULL)
 			unlink(filename);
 	return TRUE;
+}
+
+gboolean is_host_port_valid (const char *host, int port, int sock_type) {
+	  struct addrinfo hints, *ai = NULL;
+	  int err;
+	  char buf[64];
+
+	  /* Resolve host */
+	  memset(&hints, 0, sizeof(hints));
+	  hints.ai_family = AF_UNSPEC;
+	  hints.ai_socktype = sock_type;
+	  sprintf(buf, "%d", port);
+	  err = getaddrinfo(host, buf, &hints, &ai);
+	  if(err)
+		  return FALSE;
+	  else
+		  return TRUE;
 }

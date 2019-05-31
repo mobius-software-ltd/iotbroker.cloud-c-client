@@ -252,6 +252,7 @@ void sn_remove_message_from_map (unsigned short packet_id) {
 }
 
 void sn_stop_all_timers() {
+	sn_stop_connect_timer();
 	sn_stop_ping_timer();
 	sn_stop_message_timer();
 }

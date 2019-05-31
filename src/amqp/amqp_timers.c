@@ -23,7 +23,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <glib.h>
-#include "../net/tcp_client.h"
+#include "../net/lws_net_client.h"
 #include "../amqp/amqp_client.h"
 
 static pthread_t pinger;
@@ -56,7 +56,7 @@ static void *amqp_connect_task(void *arg)
 {
     //wait 5 sec until successful connection
     sleep(5);
-    stop_net_service();
+    lws_close_tcp_connection();
     return 0;
 }
 

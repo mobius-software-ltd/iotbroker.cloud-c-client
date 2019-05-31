@@ -98,6 +98,7 @@ int init_mqtt_sn_client(struct Account * acc, struct MqttListener * listener) {
 	int port = acc->server_port;
 	tcp_listener = malloc (sizeof (struct TcpListener));
 	tcp_listener->prd_pt = process_sn_rx;
+	tcp_listener->stop_pt = fin_mqtt_sn_client;
 	int is_successful = 0;
 	if(!acc->is_secure)
 		is_successful = init_net_service(host, port, UDP_PROTOCOL, tcp_listener);
@@ -562,21 +563,23 @@ void process_sn_rx(char * data, int length) {
 	        }
 	        case SN_DISCONNECT:
 	        {
-	        	if(!is_disconnect_sent)
-	        		fin_mqtt_sn_client();
+        		fin_mqtt_sn_client();
 	            break;
 	        }
 
 	    }
 }
 
-void fin_mqtt_sn_client() {
 
-	sn_stop_all_timers();
-	if(account->is_secure)
-		stop_dtls_net_service();
-	else
-		stop_net_service();
-	mqtt_listener->cu_pt(-1);
+
+void fin_mqtt_sn_client() {
+	if(!is_disconnect_sent) {
+		sn_stop_all_timers();
+		if(account->is_secure)
+			stop_dtls_net_service();
+		else
+			stop_net_service();
+		mqtt_listener->cu_pt(-1);
+	}
 }
 

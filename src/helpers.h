@@ -32,6 +32,7 @@ int add_packet_length(int length, char * remaining_length);
 int remaining_length(int length);
 void reverse (unsigned char * a, int len);
 gboolean is_cert_valid(const char * cert, const char * cert_password);
+gboolean is_host_port_valid (const char *host, int port, int sock_type);
 
 struct LengthDetails {
 	int length;

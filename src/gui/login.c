@@ -389,6 +389,10 @@ static void login_button_handle(GtkWidget *widget, gpointer data) {
 		else
 			account->certificate_password = cert_pass;
 
+		if(!is_host_port_valid (account->server_host, account->server_port, account->protocol == (MQTT_SN || COAP)?2:1)){
+			show_login_error("Host incorrect!", FALSE);
+			return;
+		}
 		//check is cert is ok with current password
 
 		if(!is_cert_valid(account->certificate,account->certificate_password))
