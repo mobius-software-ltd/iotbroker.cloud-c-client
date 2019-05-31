@@ -324,7 +324,9 @@ static void login_button_handle(GtkWidget *widget, gpointer data) {
 		if((strlen(keepalive_string) == 0 || strcmp("Enter Keepalive",keepalive_string) ==0)) {
 			show_login_error("Please enter keepalive", FALSE);
 			return;
-		} else {
+		}
+		else
+		{
 			int keepalive = atoi(keepalive_string);
 			if(keepalive < 0 || keepalive > G_MAXUINT16) {
 				show_login_error("keepalive must be >= 0 and < 65535", FALSE);
@@ -339,8 +341,9 @@ static void login_button_handle(GtkWidget *widget, gpointer data) {
 		if((strlen(will) == 0 || strcmp("Enter Will",will) ==0)) {
 			account->will = NULL;
 		}
-		else {
-			if(current_protocol == MQTT_SN && strlen(will)>1399)
+		else
+		{
+			if(current_protocol == MQTT_SN && strlen(will) > 1399)
 			{
 				show_login_error("Content of will for MQTT-SN MUST be < 1400 characters", FALSE);
 				return;
@@ -540,7 +543,6 @@ void activate_login_window(GtkApplication* application) {
 		mqttWidgets[i++] = label;
 
 		entry = gtk_entry_new();
-		gtk_entry_set_max_length(GTK_ENTRY(entry), 50);
 		gtk_entry_set_placeholder_text(GTK_ENTRY(entry), "Enter User Name");
 		gtk_grid_attach(GTK_GRID(grid), entry, 2, 4, 1, 1);
 		mqttWidgets[i++] = entry;
@@ -554,7 +556,6 @@ void activate_login_window(GtkApplication* application) {
 
 		entry = gtk_entry_new();
 		gtk_entry_set_visibility(GTK_ENTRY(entry),FALSE);
-		gtk_entry_set_max_length(GTK_ENTRY(entry), 50);
 		gtk_entry_set_placeholder_text(GTK_ENTRY(entry), "Enter Password");
 		gtk_grid_attach(GTK_GRID(grid), entry, 2, 5, 1, 1);
 		mqttWidgets[i++] = entry;
@@ -567,7 +568,6 @@ void activate_login_window(GtkApplication* application) {
 		mqttWidgets[i++] = label;
 
 		entry = gtk_entry_new();
-		gtk_entry_set_max_length(GTK_ENTRY(entry), 50);
 		gtk_entry_set_placeholder_text(GTK_ENTRY(entry), "Enter Client ID");
 		gtk_grid_attach(GTK_GRID(grid), entry, 2, 6, 1, 1);
 		mqttWidgets[i++] = entry;
@@ -579,7 +579,6 @@ void activate_login_window(GtkApplication* application) {
 		gtk_grid_attach(GTK_GRID(grid), label, 1, 7, 1, 1);
 
 		entry = gtk_entry_new();
-		gtk_entry_set_max_length(GTK_ENTRY(entry), 50);
 		gtk_entry_set_placeholder_text(GTK_ENTRY(entry), "Enter Server Host");
 		gtk_grid_attach(GTK_GRID(grid), entry, 2, 7, 1, 1);
 
@@ -590,7 +589,6 @@ void activate_login_window(GtkApplication* application) {
 		gtk_grid_attach(GTK_GRID(grid), label, 1, 8, 1, 1);
 
 		entry = gtk_entry_new();
-		gtk_entry_set_max_length(GTK_ENTRY(entry), 50);
 		gtk_entry_set_placeholder_text(GTK_ENTRY(entry), "Enter Server Port");
 		gtk_grid_attach(GTK_GRID(grid), entry, 2, 8, 1, 1);
 
@@ -621,7 +619,6 @@ void activate_login_window(GtkApplication* application) {
 		mqttWidgets[i++] = label;
 
 		entry = gtk_entry_new();
-		gtk_entry_set_max_length(GTK_ENTRY(entry), 50);
 		gtk_entry_set_placeholder_text(GTK_ENTRY(entry), "Enter Keepalive");
 		gtk_grid_attach(GTK_GRID(grid), entry, 2, 13, 1, 1);
 		mqttWidgets[i++] = entry;
@@ -635,7 +632,6 @@ void activate_login_window(GtkApplication* application) {
 
 		entry = gtk_entry_new();
 		g_signal_connect(entry, "button-press-event", G_CALLBACK (show_dialog_window), "will");
-		gtk_entry_set_max_length(GTK_ENTRY(entry), 50);
 		gtk_entry_set_placeholder_text(GTK_ENTRY(entry), "Enter Will");
 		gtk_grid_attach(GTK_GRID(grid), entry, 2, 14, 1, 1);
 		mqttWidgets[i++] = entry;
@@ -648,7 +644,6 @@ void activate_login_window(GtkApplication* application) {
 		mqttWidgets[i++] = label;
 
 		entry = gtk_entry_new();
-		gtk_entry_set_max_length(GTK_ENTRY(entry), 50);
 		gtk_entry_set_placeholder_text(GTK_ENTRY(entry), "Enter Will topic");
 		gtk_grid_attach(GTK_GRID(grid), entry, 2, 15, 1, 1);
 		mqttWidgets[i++] = entry;
@@ -717,7 +712,6 @@ void activate_login_window(GtkApplication* application) {
 
 		entry = gtk_entry_new();
 		gtk_entry_set_visibility(GTK_ENTRY(entry),FALSE);
-		gtk_entry_set_max_length(GTK_ENTRY(entry), 50);
 		gtk_entry_set_placeholder_text(GTK_ENTRY(entry), "Password");
 		gtk_grid_attach(GTK_GRID(grid), entry, 2, 22, 1, 1);
 		mqttWidgets[i++] = entry;
