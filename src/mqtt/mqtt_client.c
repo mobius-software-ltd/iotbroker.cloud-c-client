@@ -342,7 +342,7 @@ void process_rx(char * data, int length) {
 			struct Pubcomp * pc = (struct Pubcomp*) message->packet;
 			struct Message * message = get_message_from_map(pc->packet_id);
 			if(message == NULL) {
-				printf("Cannot get Publish from map after Pubcomp for id : %i \n", pc->packet_id);
+				//printf("Cannot get Publish from map after Pubcomp for id : %i \n", pc->packet_id);
 				break;
 			}
 			struct Publish * p = (struct Publish*) message->packet;
@@ -355,7 +355,7 @@ void process_rx(char * data, int length) {
 			struct Suback * sa = (struct Suback*) message->packet;
 			struct Message * message = get_message_from_map(sa->packet_id);
 			if(message == NULL) {
-				printf("Cannot get Subscribe from map after Suback for id : %i \n", sa->packet_id);
+				//printf("Cannot get Subscribe from map after Suback for id : %i \n", sa->packet_id);
 				break;
 			}
 			struct Subscribe * s = (struct Subscribe*) message->packet;
@@ -367,10 +367,13 @@ void process_rx(char * data, int length) {
 				//add topic to DB and GUI
 				add_topics_to_list_box(s->topics->topic_name, s->topics->qos);
 				save_topic_to_db(s->topics->topic_name, s->topics->qos);
-				remove_message_from_map(sa->packet_id);
+
 			} else {
-				printf("MQTT client have got SUBACK with error : %i \n",sa->codes[0]);
+				char buf[50];
+				snprintf(buf, 50, "Got SUBACK with error : %d", sa->codes[0]);
+				show_error(buf);
 			}
+				remove_message_from_map(sa->packet_id);
 			break;
 		}
 		case UNSUBACK: {

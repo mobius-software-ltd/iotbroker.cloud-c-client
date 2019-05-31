@@ -124,7 +124,7 @@ static void print_coap_box() {
 		gtk_widget_show(mqttWidgets[i]);
 }
 
-static void show_error(const gchar * error_message, gboolean is_connection_error) {
+static void show_login_error(const gchar * error_message, gboolean is_connection_error) {
 
   if(is_connection_error)
 	hide_loading_window();
@@ -249,7 +249,7 @@ static void login_button_handle(GtkWidget *widget, gpointer data) {
 		const gchar * username = gtk_entry_get_text(GTK_ENTRY(curr_widget));
 		if(strlen(username) == 0 || strcmp("Enter User Name",username) ==0) {
 			if(current_protocol == MQTT || current_protocol == WEBSOCKETS || current_protocol == AMQP) {
-				show_error("Please enter user name", FALSE);
+				show_login_error("Please enter user name", FALSE);
 				return;
 			} else {
 				account->username = NULL;
@@ -262,7 +262,7 @@ static void login_button_handle(GtkWidget *widget, gpointer data) {
 		const gchar * password = gtk_entry_get_text(GTK_ENTRY(curr_widget));
 		if(strlen(password) == 0 || strcmp("Enter Password",password) ==0) {
 			if( current_protocol == MQTT || current_protocol == WEBSOCKETS || current_protocol == AMQP) {
-				show_error("Please enter password", FALSE);
+				show_login_error("Please enter password", FALSE);
 				return;
 			} else {
 				account->password = NULL;
@@ -275,7 +275,7 @@ static void login_button_handle(GtkWidget *widget, gpointer data) {
 		curr_widget = gtk_grid_get_child_at(GTK_GRID(grid), 2, 6);
 		const gchar * client_id = gtk_entry_get_text(GTK_ENTRY(curr_widget));
 		if((strlen(client_id) == 0 || strcmp("Enter Client ID",client_id) ==0)) {
-			show_error("Please enter Client ID", FALSE);
+			show_login_error("Please enter Client ID", FALSE);
 			return;
 		}
 		else
@@ -283,7 +283,7 @@ static void login_button_handle(GtkWidget *widget, gpointer data) {
 			//check is clientid already exist
 			if(is_account_with_client_id_exist(client_id))
 			{
-				show_error("Account with this client ID already present in DB", FALSE);
+				show_login_error("Account with this client ID already present in DB", FALSE);
 				return;
 			}
 
@@ -293,7 +293,7 @@ static void login_button_handle(GtkWidget *widget, gpointer data) {
 		curr_widget = gtk_grid_get_child_at(GTK_GRID(grid), 2, 7);
 		const gchar * server_host = gtk_entry_get_text(GTK_ENTRY(curr_widget));
 		if(strlen(server_host) == 0 || strcmp("Enter Server Host",server_host) ==0) {
-			show_error("Please enter host", FALSE);
+			show_login_error("Please enter host", FALSE);
 			return;
 		}
 		else
@@ -304,12 +304,12 @@ static void login_button_handle(GtkWidget *widget, gpointer data) {
 		curr_widget = gtk_grid_get_child_at(GTK_GRID(grid), 2, 8);
 		const gchar * server_port = gtk_entry_get_text(GTK_ENTRY(curr_widget));
 		if(strlen(server_port) == 0 || strcmp("Enter Server Port",server_port) ==0) {
-			show_error("Please enter port", FALSE);
+			show_login_error("Please enter port", FALSE);
 			return;
 		} else {
 			int port = atoi(server_port);
 			if(port < 1 || port > G_MAXUINT16) {
-				show_error("Port must be > 0 and < 65535", FALSE);
+				show_login_error("Port must be > 0 and < 65535", FALSE);
 				return;
 			}
 			else
@@ -322,12 +322,12 @@ static void login_button_handle(GtkWidget *widget, gpointer data) {
 		curr_widget = gtk_grid_get_child_at(GTK_GRID(grid), 2, 13);
 		const gchar * keepalive_string = gtk_entry_get_text(GTK_ENTRY(curr_widget));
 		if((strlen(keepalive_string) == 0 || strcmp("Enter Keepalive",keepalive_string) ==0)) {
-			show_error("Please enter keepalive", FALSE);
+			show_login_error("Please enter keepalive", FALSE);
 			return;
 		} else {
 			int keepalive = atoi(keepalive_string);
 			if(keepalive < 0 || keepalive > G_MAXUINT16) {
-				show_error("keepalive must be >= 0 and < 65535", FALSE);
+				show_login_error("keepalive must be >= 0 and < 65535", FALSE);
 				return;
 			}
 			else
@@ -342,7 +342,7 @@ static void login_button_handle(GtkWidget *widget, gpointer data) {
 		else {
 			if(current_protocol == MQTT_SN && strlen(will)>1399)
 			{
-				show_error("Content of will for MQTT-SN MUST be < 1400 characters", FALSE);
+				show_login_error("Content of will for MQTT-SN MUST be < 1400 characters", FALSE);
 				return;
 			}
 			account->will = will;
@@ -358,7 +358,7 @@ static void login_button_handle(GtkWidget *widget, gpointer data) {
 		}
 
 		if((account->will == NULL && account->will_topic != NULL) || (account->will != NULL && account->will_topic == NULL)) {
-			show_error("Will and will topic both MUST be present or absent", FALSE);
+			show_login_error("Will and will topic both MUST be present or absent", FALSE);
 			return;
 		}
 		//Retain
@@ -390,7 +390,7 @@ static void login_button_handle(GtkWidget *widget, gpointer data) {
 
 		if(!is_cert_valid(account->certificate,account->certificate_password))
 		{
-			show_error("Check certificate/password", FALSE);
+			show_login_error("Check certificate/password", FALSE);
 			return;
 		}
 
@@ -407,21 +407,21 @@ static void login_button_handle(GtkWidget *widget, gpointer data) {
 		switch (current_protocol) {
 			case MQTT : {
 				if (init_mqtt_client(account, mqtt_listener) != 0) {
-					show_error("TCP connection failed! \n Please check host/port/cert etc.", TRUE);
+					show_login_error("TCP connection failed! \n Please check host/port/cert etc.", TRUE);
 					return;
 				}
 				break;
 			}
 			case MQTT_SN : {
 				if (init_mqtt_sn_client(account, mqtt_listener) != 0) {
-					show_error("UDP connection failed! \n Please check host/port/cert etc.", TRUE);
+					show_login_error("UDP connection failed! \n Please check host/port/cert etc.", TRUE);
 					return;
 				}
 				break;
 			}
 			case COAP: {
 				if (init_coap_client(account, mqtt_listener) != 0) {
-					show_error("UDP connection failed! \n Please check host/port/cert etc.", TRUE);
+					show_login_error("UDP connection failed! \n Please check host/port/cert etc.", TRUE);
 					return;
 				}
 
@@ -429,7 +429,7 @@ static void login_button_handle(GtkWidget *widget, gpointer data) {
 			}
 			case AMQP : {
 				if (init_amqp_client(account, mqtt_listener) != 0) {
-					show_error("TCP connection failed! \n Please check host/port/cert etc.", TRUE);
+					show_login_error("TCP connection failed! \n Please check host/port/cert etc.", TRUE);
 					return;
 				}
 
@@ -437,7 +437,7 @@ static void login_button_handle(GtkWidget *widget, gpointer data) {
 			}
 			case WEBSOCKETS : {
 				if (init_mqtt_client(account, mqtt_listener) != 0) {
-					show_error("TCP connection failed! \n Please check host/port/cert etc.", TRUE);
+					show_login_error("TCP connection failed! \n Please check host/port/cert etc.", TRUE);
 					return;
 				}
 				break;
@@ -777,6 +777,6 @@ static void connection_unsuccessful(int cause) {
 		strcat(dst, str);
 	}
 
-	show_error(dst, TRUE);
+	show_login_error(dst, TRUE);
 
 }

@@ -224,7 +224,7 @@ void add_topics_to_list_box (const char * topic_name, int qos) {
 
 }
 
-static void show_error(const gchar * error_message) {
+void show_error(const gchar * error_message) {
   GtkWidget * dialog = gtk_message_dialog_new(GTK_WINDOW (main_window), GTK_DIALOG_DESTROY_WITH_PARENT, GTK_MESSAGE_ERROR, GTK_BUTTONS_OK, "%s", error_message);
   gtk_window_set_title(GTK_WINDOW(dialog), "Error");
   gtk_dialog_run(GTK_DIALOG(dialog));

@@ -66,7 +66,7 @@ static void show_app_window(){
 	}
 }
 
-static void show_error(const gchar * error_message) {
+static void show_account_list_error(const gchar * error_message) {
 
   hide_loading_window();
   main_window_activated = FALSE;
@@ -129,28 +129,28 @@ void activate_main_window_default (GtkButton * button, struct Account * _account
 
 		if(current_protocol == MQTT) {
 			if (init_mqtt_client(account, mqtt_listener) != 0) {
-				show_error("TCP connection failed! \n Please check host/port/cert etc.");
+				show_account_list_error("TCP connection failed! \n Please check host/port/cert etc.");
 				return;
 			}
 		} else if (current_protocol == MQTT_SN){
 			if (init_mqtt_sn_client(account, mqtt_listener) != 0) {
-				show_error("UDP connection failed! \n Please check host/port/cert etc.");
+				show_account_list_error("UDP connection failed! \n Please check host/port/cert etc.");
 				return;
 			}
 
 		} else if(current_protocol == COAP) {
 			if (init_coap_client(account, mqtt_listener) != 0) {
-				show_error("UDP connection failed! \n Please check host/port/cert etc.");
+				show_account_list_error("UDP connection failed! \n Please check host/port/cert etc.");
 				return;
 			}
 		} else if(current_protocol == AMQP) {
 			if (init_amqp_client(account, mqtt_listener) != 0) {
-				show_error("TCP connection failed! \n Please check host/port/cert etc.");
+				show_account_list_error("TCP connection failed! \n Please check host/port/cert etc.");
 				return;
 			}
 		} else if(current_protocol == WEBSOCKETS) {
 			if (init_mqtt_client(account, mqtt_listener) != 0) {
-				show_error("TCP connection failed! \n Please check host/port/cert etc.");
+				show_account_list_error("TCP connection failed! \n Please check host/port/cert etc.");
 				return;
 			}
 		} else {
@@ -359,7 +359,7 @@ static void connection_unsuccessful(int cause) {
 		strcat(dst, str);
 	}
 
-	show_error(dst);
+	show_account_list_error(dst);
 
 }
 

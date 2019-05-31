@@ -630,7 +630,7 @@ struct Message * decode(char * buf) {
 		int code_index = 0;
 
 		while (code_index < codes_size) {
-			enum SubackCode code = buf[i++];
+			enum SubackCode code = abs(buf[i++]);
 			if (code != FAILURE
 					&& (code < ACCEPTED_QOS0 || code > ACCEPTED_QOS2)) {
 				printf("Invalid suback code: %d \n", code);

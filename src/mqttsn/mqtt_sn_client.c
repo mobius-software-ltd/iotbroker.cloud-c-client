@@ -517,7 +517,7 @@ void process_sn_rx(char * data, int length) {
 
 						add_topics_to_list_box(s->topic->value, s->topic->qos);
 						save_topic_to_db(s->topic->value, s->topic->qos);
-						sn_remove_message_from_map(sa->message_id);
+
 	        		}
 	        		else
 	        		{
@@ -525,8 +525,12 @@ void process_sn_rx(char * data, int length) {
 	        			save_topic_to_db(topic_name, s->topic->qos);
 	        		}
 	        	} else {
-	        		printf("MQTT client have got SUBACK with error : %i \n",sa->code);
+	        		char buf[50];
+					snprintf(buf, 50, "Got SUBACK with error : %d", sa->code);
+					show_error(buf);
 	        	}
+	        	sn_remove_message_from_map(sa->message_id);
+
 	        	break;
 	        }
 	        case SN_UNSUBACK:
