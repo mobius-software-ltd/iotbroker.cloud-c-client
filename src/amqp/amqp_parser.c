@@ -234,8 +234,12 @@ struct TlvList * add_section(struct SectionEntry section_entry) {
 			tlv_list->bytes[i++] = SMALL_ULONG;
 			tlv_list->bytes[i++] = section_entry.code;
 			tlv_list->bytes[i++] = tlv_data->code;
-			tlv_list->bytes[i++] = tlv_data->length-2;
-			memcpy(&(tlv_list->bytes[i]), tlv_data->value_array, tlv_data->length-2);
+			if(tlv_data->code == BINARY_8)
+				tlv_list->bytes[i++] = data.data_length;
+			else
+				i+=add_int(&(tlv_list->bytes[i]), data.data_length);
+
+			memcpy(&(tlv_list->bytes[i]), tlv_data->value_array,  data.data_length);
 			break;
 
 		}

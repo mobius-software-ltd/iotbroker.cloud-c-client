@@ -22,7 +22,9 @@
 #include <gtk/gtk.h>
 char *utf8_check(char *s);
 int add_short(char * buf, unsigned short s);
+int add_int(char * buf, int i);
 int get_int(char* array, int offset);
+int get_int_advanced(char* array, int offset);
 double get_double (char* array, int offset);
 float get_float (char* array, int offset);
 long get_long(char* array, int offset);

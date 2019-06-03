@@ -81,12 +81,24 @@ int add_short(char * buf, unsigned short s) {
 	return 2;
 }
 
+int add_int(char * buf, int i) {
+	*buf++ = (i >> 24) & 0xff;
+	*buf++ = (i >> 16) & 0xff;
+	*buf++ = (i >> 8) & 0xff;
+	*buf = (i & 0xff);
+	return 4;
+}
+
 short get_short(char* array, int offset) {
 	return (short)((array[offset]<<8) | ((array[offset+1])& 0xff));
 }
 
 int get_int(char* array, int offset) {
 	return array[offset] << 24 | (array[offset+1] << 16) | (array[offset+2] << 8) | (array[offset+3]);
+}
+int get_int_advanced(char* array, int offset) {
+	char tmp[4] = {array[offset],array[offset+1],array[offset+2],array[offset+3]};
+	return *(int*)tmp;
 }
 
 long get_long(char* array, int offset) {

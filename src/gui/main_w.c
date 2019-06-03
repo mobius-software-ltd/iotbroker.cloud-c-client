@@ -547,7 +547,7 @@ void add_topic_button_handle(GtkWidget *widget, gpointer data) {
 
 	curr_widget = gtk_grid_get_child_at(GTK_GRID(grid), 2, 1);
 	int qos = gtk_spin_button_get_value(GTK_SPIN_BUTTON(curr_widget));
-	if(!(current_protocol == AMQP && is_topic_exist(account->id, topic_name)))
+	if(!(current_protocol == AMQP && is_topic_exist(account->id, (char*)topic_name)))
 		mqtt_listener->send_sub(topic_name, qos);
 }
 
