@@ -107,6 +107,38 @@ gboolean is_account_with_client_id_exist (char * client_id) {
 		return TRUE;
 }
 
+gboolean is_topic_exist (int id, char * topic_name) {
+
+	GdaDataModel *data_model;
+	GdaSqlParser *parser;
+	GdaStatement *stmt;
+	GError *error = NULL;
+	char id_char[12];
+	sprintf(id_char,"%d",id);
+
+	gchar sql [256] = {};
+	strcat(sql, "SELECT COUNT(*) FROM topic WHERE topic_account=");
+	strcat(sql, id_char);
+	strcat(sql, " AND  topic_name='");
+	strcat(sql, topic_name);
+	strcat(sql, "'");
+	parser = g_object_get_data (G_OBJECT (cnc), "parser");
+	stmt = gda_sql_parser_parse_string (parser, sql, NULL, NULL);
+	data_model = gda_connection_statement_execute_select (cnc, stmt, NULL, &error);
+	g_object_unref (stmt);
+	if (!data_model)
+	g_object_unref (stmt);
+	if (!data_model)
+		g_error ("Could not check is topic present in table: %s\n",
+						 error && error->message ? error->message : "No detail");
+
+	gint is_present = g_value_get_int(gda_data_model_get_value_at(data_model, 0, 0, NULL));
+	if(is_present == 0)
+		return FALSE;
+	else
+		return TRUE;
+}
+
 void create_account_table_if_not_exist (GdaConnection *cnc)
 {
     run_sql_non_select(cnc, "CREATE table IF NOT EXISTS account ("

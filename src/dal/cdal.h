@@ -47,6 +47,7 @@ void set_account_default(int id);
 void remove_account_from_db(int id);
 void remove_account_topics_from_db(int id);
 gboolean is_account_with_client_id_exist (char * client_id);
+gboolean is_topic_exist (int id, char * topic_name);
 
 
 
