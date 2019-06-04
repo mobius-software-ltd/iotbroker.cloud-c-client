@@ -56,6 +56,7 @@ static struct Account * account = NULL;
 static int channel = 0;
 static int next_handle = 1;
 static int packet_id_counter = 1;
+static int is_connected = 0;
 //static int current_packet_number = 0;
 //static int delay_in_seconds = 0;
 
@@ -562,6 +563,7 @@ void process_amqp_rx(char * data, int readable_bytes) {
 			}
 
 			//start resend timer
+			is_connected = 1;
 			amqp_start_message_timer();
 
 			break;
@@ -706,6 +708,9 @@ void process_amqp_rx(char * data, int readable_bytes) {
 			break;
 		}
 		case CLOSE: {
+			if(!is_connected)
+				mqtt_listener->cu_pt(1);
+			is_connected = 0;
 			lws_close_tcp_connection();
 			break;
 		}
