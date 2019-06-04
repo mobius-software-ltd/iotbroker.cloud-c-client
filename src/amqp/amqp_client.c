@@ -610,10 +610,17 @@ void process_amqp_rx(char * data, int readable_bytes) {
 
 	            	long current_handler = amqp_get_handler_from_map(attach->name);
 					if ( current_handler == 0) {
+
+						if(amqp_get_topic_name_from_map(*(attach->handle))!= NULL) {
+							add_topics_to_list_box(attach->name, AT_LEAST_ONCE);
+							save_topic_to_db(attach->name, AT_LEAST_ONCE);
+						}
+
 						amqp_add_handler_in_map(attach->name, *(attach->handle));
 						amqp_add_topic_name_in_map(*(attach->handle), attach->name);
-						add_topics_to_list_box(attach->name, AT_LEAST_ONCE);
-						save_topic_to_db(attach->name, AT_LEAST_ONCE);
+
+
+
 					}
 
 	                if(*(attach->handle) >= next_handle)
