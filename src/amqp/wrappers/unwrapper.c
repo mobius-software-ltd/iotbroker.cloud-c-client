@@ -132,7 +132,7 @@ int * unwrap_char(struct TlvAmqp * tlv)
 		printf("Error trying to parse CHAR: received %i\n",tlv->code);
 		return NULL;
 	}
-	*value = get_int((char*)tlv->value_array, 0);
+	*value = get_int_advanced((char*)tlv->value_array, 0);
 	return value;
 }
 
@@ -171,7 +171,7 @@ int * unwrap_int(struct TlvAmqp * tlv) {
 	} else if (tlv->length == 1) {
 		*value = tlv->value_array[0];
 	} else {
-		 *value = get_int((char*)tlv->value_array,0);
+		 *value = get_int_advanced((char*)tlv->value_array,0);
 	}
 	return value;
 }
@@ -216,7 +216,7 @@ long * unwrap_uint(struct TlvAmqp * tlv) {
 	} else if (tlv->length == 1) {
 		*value = tlv->value_array[0];
 	} else {
-		*value = get_int((char*)tlv->value_array, 0);
+		*value = get_int_advanced((char*)tlv->value_array, 0);
 	}
 	return value;
 }

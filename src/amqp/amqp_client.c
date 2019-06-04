@@ -262,6 +262,9 @@ void send_amqp_attach_with_handler(const char * topic_name, int qos, long handle
 
 	struct AmqpAttach * attach =  malloc (sizeof (struct AmqpAttach));
 
+	amqp_add_handler_in_map(topic_name, handler);
+	amqp_add_topic_name_in_map(handler,topic_name);
+
 	attach->name = topic_name;
 
 	attach->handle = malloc(sizeof(long));
@@ -490,7 +493,8 @@ void send_amqp_attach(const char * topic_name, int qos) {
 void amqp_data_received(char * buf, int readable_bytes) {
 
 	int i = 0;
-	int length = get_int(buf,0);
+	int length = get_int_advanced(buf,0);
+
 	if (length == 1095586128)
 	{
 		i += 4;
@@ -520,7 +524,7 @@ void amqp_data_received(char * buf, int readable_bytes) {
 			memcpy(next_bytes,&(buf[i]),length);
 			process_amqp_rx(next_bytes, length);
 			i += length;
-			length = get_int(buf,i);
+			length = get_int_advanced(buf,i);
 		} while (i < readable_bytes);
 	}
 }
@@ -555,8 +559,6 @@ void process_amqp_rx(char * data, int readable_bytes) {
 					struct CommonTopic * common_topic = &(mqtt_model->topic[i]);
 					//save in map
 					long current_handler = next_handle++;
-					amqp_add_handler_in_map(common_topic->topic_name, current_handler);
-					amqp_add_topic_name_in_map(current_handler,common_topic->topic_name);
 					//send attach for each topic in db
 					send_amqp_attach_with_handler(common_topic->topic_name, common_topic->qos, current_handler);
 				}
@@ -609,21 +611,13 @@ void process_amqp_rx(char * data, int readable_bytes) {
 	            }
 	            else if(*(attach->role) == SENDER)
 	            {
-
-	            	long current_handler = amqp_get_handler_from_map(attach->name);
-					if ( current_handler == 0) {
-
-						if(amqp_get_topic_name_from_map(*(attach->handle))!= NULL) {
-							add_topics_to_list_box(attach->name, AT_LEAST_ONCE);
-							save_topic_to_db(attach->name, AT_LEAST_ONCE);
-						}
-
-						amqp_add_handler_in_map(attach->name, *(attach->handle));
-						amqp_add_topic_name_in_map(*(attach->handle), attach->name);
-
-
-
+					if(amqp_get_topic_name_from_map(*(attach->handle))!= NULL) {
+						add_topics_to_list_box(attach->name, AT_LEAST_ONCE);
+						save_topic_to_db(attach->name, AT_LEAST_ONCE);
 					}
+
+					amqp_add_handler_in_map(attach->name, *(attach->handle));
+					amqp_add_topic_name_in_map(*(attach->handle), attach->name);
 
 	                if(*(attach->handle) >= next_handle)
 	                	next_handle = *(attach->handle) + 1;

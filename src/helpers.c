@@ -97,7 +97,7 @@ int get_int(char* array, int offset) {
 	return array[offset] << 24 | (array[offset+1] << 16) | (array[offset+2] << 8) | (array[offset+3]);
 }
 int get_int_advanced(char* array, int offset) {
-	char tmp[4] = {array[offset],array[offset+1],array[offset+2],array[offset+3]};
+	char tmp[4] = {array[offset+3],array[offset+2],array[offset+1],array[offset]};
 	return *(int*)tmp;
 }
 

@@ -125,7 +125,8 @@ static struct TlvAmqp * get_element(struct TlvConstructor * constructor, char * 
 	case STRING_32:
 	case SYMBOL_32:
 	case BINARY_32:{
-		int var_32_length = get_int(buf, *i);
+		int var_32_length = get_int_advanced(buf, *i);
+		tlv->length = var_32_length;
 		*i += 4;
 		tlv->value_array = malloc(var_32_length * sizeof(char));
 		tlv->width = malloc(sizeof(int));
@@ -157,9 +158,9 @@ static struct TlvAmqp * get_element(struct TlvConstructor * constructor, char * 
 		break;
 	}
 	case LIST_32: {
-		int list_32_size = get_int(buf, *i);
+		int list_32_size = get_int_advanced(buf, *i);
 		*i += 4;
-		int list_32_count = get_int(buf, *i);
+		int list_32_count = get_int_advanced(buf, *i);
 		*i += 4;
 		struct TlvAmqp * list_32_values = malloc(list_32_count * sizeof(struct TlvAmqp));
 		init_wcs(tlv);
@@ -192,9 +193,9 @@ static struct TlvAmqp * get_element(struct TlvConstructor * constructor, char * 
 	}
 	case MAP_32: {
 
-		int map_32_size = get_int(buf, *i);
+		int map_32_size = get_int_advanced(buf, *i);
 		*i += 4;
-		int map_32_count = get_int(buf, *i);
+		int map_32_count = get_int_advanced(buf, *i);
 		*i += 4;
 		struct TlvTlvEntry * map32 = malloc(map_32_count * sizeof(struct TlvTlvEntry));
 		init_wcs(tlv);
@@ -229,9 +230,9 @@ static struct TlvAmqp * get_element(struct TlvConstructor * constructor, char * 
 	}
 	case ARRAY_32: {
 
-		int array_32_size = get_int(buf, *i);
+		int array_32_size = get_int_advanced(buf, *i);
 		*i += 4;
-		int array_32_count = get_int(buf, *i);
+		int array_32_count = get_int_advanced(buf, *i);
 		*i += 4;
 		struct TlvAmqp * arr32 = malloc(array_32_count * sizeof(struct TlvAmqp));
 		init_wcs(tlv);

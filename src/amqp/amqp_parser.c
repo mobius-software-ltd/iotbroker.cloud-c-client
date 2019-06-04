@@ -57,7 +57,7 @@ struct AmqpHeader * amqp_decode(char * data, int readable_bytes) {
 	struct AmqpHeader * header = malloc (sizeof (struct AmqpHeader));
 
 	int i = 0;
-	int length = data[i] << 24 | (data[i+1] << 16) | (data[i+2] << 8) | (data[i+3]);
+	int length = get_int_advanced(data,i);
 	i += 4;
 	char doff = data[i++];
 	char type = data[i++];
