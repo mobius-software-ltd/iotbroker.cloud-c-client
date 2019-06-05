@@ -333,7 +333,7 @@ static void remove_account(int id) {
 	gchar str1 [256] = {};
 	gchar str2 [256] = {};
 	gchar str3 [256] = {};
-	char account_id_string [3];
+	char account_id_string [12];
 	sprintf(account_id_string, "%d", id);
 
 	//remove messages
@@ -354,7 +354,7 @@ static void remove_account(int id) {
 
 void remove_account_messages_from_db(int id) {
 	gchar str1 [256] = {};
-	char account_id_string [3];
+	char account_id_string [12];
 	sprintf(account_id_string, "%d", id);
 	//remove messages
 	strcat(str1, "DELETE FROM message WHERE message_account=");
@@ -364,7 +364,7 @@ void remove_account_messages_from_db(int id) {
 
 void remove_account_topics_from_db(int id) {
 	gchar str1 [256] = {};
-	char account_id_string [3];
+	char account_id_string [12];
 	sprintf(account_id_string, "%d", id);
 	//remove topics
 	strcat(str1, "DELETE FROM topic WHERE topic_account=");
@@ -395,7 +395,7 @@ static void remove_topic (GdaConnection *cnc, const char * topic_name)
 
 	gchar str [256] = {};
 	strcat(str, "DELETE FROM topic WHERE topic_account=");
-	char account_id_string [3];
+	char account_id_string [12];
 	sprintf(account_id_string, "%d", account_id_int);
 	strcat(str, account_id_string);
 	strcat(str, " and topic_name='");
