@@ -615,7 +615,7 @@ static struct MqttModel * get_topics () {
 
 	gchar sql [100] = {};
 	strcat(sql, "SELECT topic_name, qos FROM topic WHERE topic_account=");
-	char account_id_string [3];
+	char account_id_string [12];
 	sprintf(account_id_string, "%d", get_default_account_id());
 	strcat(sql, account_id_string);
 
@@ -654,7 +654,7 @@ static struct MqttModel * get_messages() {
 
 	gchar sql [100] = {};
 	strcat(sql, "SELECT topic_name, content, qos, is_incoming FROM message WHERE message_account=");
-	char account_id_string [3];
+	char account_id_string [12];
 	sprintf(account_id_string, "%d", get_default_account_id());
 	strcat(sql, account_id_string);
 
