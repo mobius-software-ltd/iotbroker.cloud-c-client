@@ -27,8 +27,11 @@
 #include "../amqp/amqp_client.h"
 
 static pthread_t pinger;
+static gboolean is_pinger_started = FALSE;
 static pthread_t messager;
+static gboolean is_messager_started = FALSE;
 static pthread_t connecter;
+static gboolean is_connecter_started = FALSE;
 static unsigned int delay_in_seconds = 10;
 
 //map for storing transfer messages for send after attach
@@ -49,6 +52,7 @@ static void *amqp_ping_task(void *arg)
         sleep(delay_in_seconds);
         send_amqp_ping();
     }
+    is_pinger_started = FALSE;
     return 0;
 }
 
@@ -57,6 +61,7 @@ static void *amqp_connect_task(void *arg)
     //wait 5 sec until successful connection
     sleep(5);
     lws_close_tcp_connection();
+    is_connecter_started = FALSE;
     return 0;
 }
 
@@ -97,6 +102,7 @@ void start_amqp_ping_timer(unsigned int delay) {
 		send_amqp_end();
 		exit(-1);
 	}
+	is_pinger_started = TRUE;
 }
 
 void amqp_start_message_timer() {
@@ -108,6 +114,7 @@ void amqp_start_message_timer() {
 		send_amqp_end();
 		exit(-1);
 	}
+	is_messager_started = TRUE;
 }
 
 void amqp_start_connect_timer() {
@@ -119,10 +126,15 @@ void amqp_start_connect_timer() {
 		send_amqp_end();
 		exit(-1);
 	}
+	is_connecter_started = TRUE;
 }
 
 void amqp_stop_connect_timer() {
-	pthread_cancel(connecter);
+
+	if(is_connecter_started) {
+		pthread_cancel(connecter);
+		is_connecter_started = FALSE;
+	}
 }
 
 void amqp_stop_ping_timer() {
@@ -133,11 +145,17 @@ void amqp_stop_ping_timer() {
 		g_hash_table_destroy(topic_name_map_outgoing);
 		g_hash_table_destroy(reverse_topic_name_map);
 	}
-	pthread_cancel(pinger);
+	if(is_pinger_started) {
+		pthread_cancel(pinger);
+		is_pinger_started = FALSE;
+	}
 }
 
 void amqp_stop_message_timer() {
-	pthread_cancel(messager);
+	if(is_messager_started) {
+		pthread_cancel(messager);
+		is_pinger_started = FALSE;
+	}
 }
 
 void amqp_add_message_in_map_by_handler(unsigned short handler, struct AmqpHeader * message) {
