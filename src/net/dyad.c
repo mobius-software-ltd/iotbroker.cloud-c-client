@@ -1024,7 +1024,6 @@ int dyad_connect(dyad_Stream *stream, const char *host, int port, int sock_type)
   }
   /* Start connecting */
   //ai->ai_socktype =
-  printf("Socket type : %i \n", ai->ai_socktype );
   err = stream_initSocket(stream, ai->ai_family, ai->ai_socktype,
                           ai->ai_protocol);
   if (err) goto fail;

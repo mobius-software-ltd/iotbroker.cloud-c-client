@@ -90,7 +90,6 @@ int init_coap_client(struct Account * acc, struct MqttListener * listener) {
 		is_succesful = init_dtls(host, port, tcp_listener, acc->certificate, acc->certificate_password);
 	}
 
-		printf("COAP client initialized \n");
 	return is_succesful;
 }
 

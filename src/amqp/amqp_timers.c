@@ -77,8 +77,9 @@ static void *amqp_message_resend_task(void *arg)
 		g_hash_table_iter_init (&iter, m_delivery_id);
 		while (g_hash_table_iter_next (&iter, &key, &value))
 		{
-			struct AmqpHeader * message = (struct AmqpHeader *)value;
-			amqp_encode_and_fire(message);
+			int diff = time(NULL)-((struct AmqpHeader *)value)->time_stamp;
+			if((diff) > 10)
+				amqp_encode_and_fire((struct AmqpHeader *)value);
 		}
     }
     return 0;
@@ -168,6 +169,7 @@ void amqp_add_message_in_map_by_handler(unsigned short handler, struct AmqpHeade
 
 void amqp_add_message_in_map_by_delivery_id(unsigned short delivery_id, struct AmqpHeader * message) {
 
+	message->time_stamp = time(NULL);
 	int* delivery_id_int = (int*)malloc(sizeof(int));
 	delivery_id_int[0] = delivery_id;
 	g_hash_table_insert (m_delivery_id, delivery_id_int, message);

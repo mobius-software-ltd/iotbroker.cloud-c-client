@@ -29,7 +29,6 @@ struct Publish {
 	int dup;
 	int is_incoming;
 	unsigned short packet_id;
-	time_t time_stamp;
 };
 
 #endif /* MQTT_PACKETS_PUBLISH_H_ */

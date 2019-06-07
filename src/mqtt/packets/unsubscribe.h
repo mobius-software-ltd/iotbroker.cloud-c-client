@@ -26,7 +26,6 @@ struct Unsubscribe {
 	int topics_number;
 	struct Topic * topics;
 	unsigned short packet_id;
-	time_t time_stamp;
 };
 
 #endif /* UNSUBSCRIBE_H_ */

@@ -74,7 +74,9 @@ static void *message_resend_task(void *arg)
 		g_hash_table_iter_init (&iter, messages_map);
 		while (g_hash_table_iter_next (&iter, &key, &value))
 		{
-			encode_and_fire((struct Message *)value);
+			int diff = time(NULL)-((struct Message *)value)->time_stamp;
+			if( (diff) > 10)
+				encode_and_fire((struct Message *)value);
 		}
     }
     return 0;
@@ -134,6 +136,7 @@ void stop_message_timer() {
 
 void add_message_in_map(struct Message * message) {
 
+	message->time_stamp = time(NULL);
 	unsigned short packet_id = 0;
 	enum MessageType type = message->message_type;
 	switch(type) {

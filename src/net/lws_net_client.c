@@ -63,7 +63,7 @@ static void * net_service_task(void *thread_id)
 		n = lws_service(context, 500);
 	}
 	lws_context_destroy(context);
-	printf("Net service stopped\n");
+	//printf("Net service stopped\n");
 	//pthread_cancel(worker);
 	g_queue_free(q);
 	q=NULL;
@@ -233,8 +233,6 @@ int open_lws_net_connection(const char * host, int port, struct TcpListener * cl
 			info.client_ssl_cert_filepath = filename;
 
 		}
-		else
-			printf("Certificate is NULL\n");
 	}
 
 	context = lws_create_context(&info);

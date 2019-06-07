@@ -57,6 +57,7 @@ struct SnMessage {
 
 	enum SnMessageType message_type;
 	void * packet;
+	time_t time_stamp;
 };
 
 #endif /* MQTTSN_PACKETS_SN_MESSAGE_H_ */

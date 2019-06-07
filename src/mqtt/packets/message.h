@@ -41,6 +41,7 @@ struct Message {
 
 	enum MessageType message_type;
 	void * packet;
+	time_t time_stamp;
 };
 
 #endif /* MQTT_PACKETS_MESSAGE_H_ */

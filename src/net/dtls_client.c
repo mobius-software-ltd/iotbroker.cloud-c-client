@@ -76,7 +76,7 @@ static void * update_dtls(void *threadid)
 	}
 	cert_password = NULL;
 	close(fd);
-	printf("DTLS connection closed.\n");
+	//printf("DTLS connection closed.\n");
 	return 0;
 }
 

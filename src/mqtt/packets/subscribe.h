@@ -26,7 +26,6 @@ struct Subscribe {
 	struct Topic * topics;
 	int topics_number;
 	unsigned short packet_id;
-	time_t time_stamp;
 };
 
 #endif /* SUBSCRIBE_H_ */

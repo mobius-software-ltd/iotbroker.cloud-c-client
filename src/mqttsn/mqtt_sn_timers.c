@@ -81,13 +81,17 @@ static void *message_resend_task(void *arg)
         while (g_hash_table_iter_next (&iter, &key, &value))
         {
         	struct SnMessage * sn_message = (struct SnMessage *)value;
-        	enum SnMessageType type = sn_message->message_type;
-			if(type == SN_PUBLISH) {
-			   struct SnPublish * p = (struct SnPublish*) sn_message->packet;
-			   if(p->topic.id==0)
-				   continue;
-			}
-			 sn_encode_and_fire(sn_message);
+        	int diff = time(NULL)-sn_message->time_stamp;
+        	if((diff) > 10)
+        	{
+				enum SnMessageType type = sn_message->message_type;
+				if(type == SN_PUBLISH) {
+				   struct SnPublish * p = (struct SnPublish*) sn_message->packet;
+				   if(p->topic.id==0)
+					   continue;
+				}
+				 sn_encode_and_fire(sn_message);
+        	}
         }
     }
     return 0;
@@ -154,6 +158,7 @@ void sn_stop_message_timer() {
 
 void sn_add_message_in_map(struct SnMessage * sn_message) {
 
+	sn_message->time_stamp = time(NULL);
 	unsigned short packet_id = 0;
 	enum SnMessageType type = sn_message->message_type;
 	switch(type) {

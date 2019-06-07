@@ -30,6 +30,7 @@ struct AmqpHeader {
 	int type;
 	int channel;
 	void * packet;
+	time_t time_stamp;
 };
 
 #endif /* SRC_AMQP_PACKETS_AMQP_HEADER_H_ */

@@ -80,7 +80,9 @@ static void *coap_message_resend_task(void *arg)
 		 while (g_hash_table_iter_next (&iter, &key, &value))
 		 {
 			struct CoapMessage * coap_message = (struct CoapMessage *)value;
-			coap_encode_and_fire(coap_message);
+			int diff = time(NULL)-coap_message->time_stamp;
+			if( (diff) > 10)
+				coap_encode_and_fire((struct CoapMessage *)value);
 		 }
     }
     return 0;
@@ -123,6 +125,7 @@ void coap_stop_message_timer() {
 
 void coap_add_message_in_map(struct CoapMessage * message) {
 
+	message->time_stamp = time(NULL);
 	int* packet_id_int = (int*)malloc(sizeof(int));
 	packet_id_int[0]=message->message_id;
 	g_hash_table_insert (messages_map, packet_id_int, message);
