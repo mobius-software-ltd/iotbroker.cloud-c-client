@@ -93,17 +93,14 @@ int init_mqtt_sn_client(struct Account * acc, struct MqttListener * listener) {
 	mqtt_listener->send_message = send_sn_message;
 	mqtt_listener->send_disconnect = send_sn_disconnect;
 	mqtt_listener->send_unsubscribe = send_sn_unsubscribe;
-
-	const char * host = acc->server_host;
-	int port = acc->server_port;
 	tcp_listener = malloc (sizeof (struct TcpListener));
 	tcp_listener->prd_pt = process_sn_rx;
 	tcp_listener->stop_pt = fin_mqtt_sn_client;
 	int is_successful = 0;
 	if(!acc->is_secure)
-		is_successful = init_net_service(host, port, UDP_PROTOCOL, tcp_listener);
+		is_successful = init_net_service(acc->server_host, acc->server_port, UDP_PROTOCOL, tcp_listener);
 	else
-		is_successful = init_dtls(host, port, tcp_listener, acc->certificate, acc->certificate_password);
+		is_successful = init_dtls(acc->server_host, acc->server_port, tcp_listener, acc->certificate, acc->certificate_password);
 
 	return is_successful;
 
@@ -115,7 +112,9 @@ void send_sn_connect(struct Account * acc) {
 	account = acc;
 
 	struct SnConnect * sn_connect_packet = malloc (sizeof (struct SnConnect));
-	sn_connect_packet->client_id = account->client_id;
+
+	sn_connect_packet->client_id = malloc(sizeof(char*) * (strlen(account->client_id) + 1));
+	strcpy((char*)sn_connect_packet->client_id, account->client_id);
 	sn_connect_packet->clean_session = account->clean_session;
 	sn_connect_packet->protocol_id = SN_PROTOCOL_ID;
 	if(account->will != NULL && account->will_topic != NULL)
@@ -141,8 +140,8 @@ void send_sn_subscribe(const char * topic_name, int qos) {
 	sn_topic->qos = qos;
 	unsigned short topic_id = sn_get_topic_id_from_map(topic_name);
 	if(topic_id == 0) {
-		sn_topic->value = malloc (sizeof (char)*strlen(topic_name));
-		sn_topic->value = topic_name;
+		sn_topic->value = malloc (sizeof (char)*(strlen(topic_name) + 1));
+		strcpy((char*)sn_topic->value, topic_name);
 		sn_topic->topic_type = NAMED;
 	} else {
 		sn_topic->topic_type = ID;
@@ -170,9 +169,11 @@ void send_sn_message(const char * content, const char * topic_name, int qos, int
 	sn_publish->topic.topic_type = ID;
 	sn_publish->is_incoming = 0;
 	sn_publish->topic.id = topic_id;
-	sn_publish->data = content;
+	sn_publish->data = malloc(sizeof(char*) * (strlen(content) + 1));
+	strcpy((char*)sn_publish->data, content);
 	sn_publish->topic.qos = qos;
-	sn_publish->topic.value = topic_name;
+	sn_publish->topic.value = malloc(sizeof(char*) * (strlen(topic_name) + 1));
+	strcpy((char*)sn_publish->topic.value, topic_name);
 	sn_publish->dup = dup;
 	sn_publish->retain = retain;
 	sn_publish->message_id = ++current_packet_number;
@@ -195,7 +196,8 @@ static void send_sn_register(const char * topic_name) {
 	struct SnRegister * sn_register = malloc (sizeof (struct SnRegister));
 	sn_register->topic_id = 0;
 	sn_register->msg_id = ++current_packet_number;
-	sn_register->topic_name = topic_name;
+	sn_register->topic_name = malloc(sizeof(char*) * (strlen(topic_name) + 1));
+	strcpy(sn_register->topic_name, topic_name);
 	struct SnMessage * sn_message = malloc (sizeof (struct SnMessage));
 	sn_message->message_type = SN_REGISTER;
 	sn_message->packet = sn_register;
@@ -232,8 +234,8 @@ void send_sn_unsubscribe(const char * topic_name) {
 
 	unsigned short topic_id = sn_get_topic_id_from_map(topic_name);
 	if(topic_id == 0) {
-		sn_unsubscribe->topic->value = malloc (sizeof (char)*strlen(topic_name));
-		sn_unsubscribe->topic->value = topic_name;
+		sn_unsubscribe->topic->value = malloc (sizeof (char*)*(strlen(topic_name)+1));
+		strcpy((char*)sn_unsubscribe->topic->value, topic_name);
 		sn_unsubscribe->topic->topic_type = NAMED;
 	} else {
 		sn_unsubscribe->topic->topic_type = ID;
