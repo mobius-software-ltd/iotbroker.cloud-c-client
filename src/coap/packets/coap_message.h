@@ -34,7 +34,7 @@ struct CoapMessage {
 	int token_length;
 	struct CoapOption * options;
 	int options_amount;
-	const char * payload;
+	char * payload;
 	time_t time_stamp;
 
 };

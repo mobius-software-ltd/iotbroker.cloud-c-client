@@ -42,6 +42,8 @@ static int current_packet_number = 0;
 static int delay_in_seconds = 0;
 static int init_connect = 0;
 
+pthread_mutex_t lock;
+
 void process_coap_rx(char * data, int length);
 void coap_connect(struct Account * acc);
 void send_coap_subscribe(const char * topic_name, int qos);
@@ -60,10 +62,12 @@ void coap_encode_and_fire(struct CoapMessage * coap_message) {
 	int total_length = 256;
 	char * buf = coap_encode(coap_message, &total_length);
 	//send
+	pthread_mutex_lock(&lock);
 	if(account->is_secure)
 		dtls_fire(buf,total_length);
 	else
 		write_to_net(buf,total_length);
+	pthread_mutex_unlock(&lock);
 }
 
 int init_coap_client(struct Account * acc, struct MqttListener * listener) {
@@ -133,8 +137,8 @@ void send_coap_subscribe(const char * topic_name, int qos) {
 	message->message_id = ++current_packet_number;
 	char str[5];
 	sprintf(str, "%d", current_packet_number);
-	message->token = malloc (sizeof (char*));
-	message->token = str;
+	message->token = malloc ((strlen(str)+1)*sizeof (char));
+	strcpy(message->token, str);
 	message->type = CONFIRMABLE;
 	message->code = GET;
 	char payload [1] = {0x00};
@@ -145,12 +149,14 @@ void send_coap_subscribe(const char * topic_name, int qos) {
 	observe->length = 4;
 	observe->number = OBSERVE;
 	char observe_value [4] = { 0x00, 0x00, 0x00, 0x00 };
-	observe->value = observe_value;
+	observe->value = malloc(sizeof(char*)*observe->length);
+	memcpy((char*)observe->value,observe_value, 4);
 	options[0] = *observe;
 	struct CoapOption * uri_path = malloc (sizeof (struct CoapOption));
 	uri_path->length = strlen(topic_name);
 	uri_path->number = URI_PATH;
-	uri_path->value = topic_name;
+	uri_path->value = malloc(sizeof(char*) * (uri_path->length +1));
+	strcpy((char*)uri_path->value, topic_name);
 	options[1] = *uri_path;
 	struct CoapOption * accept = malloc (sizeof (struct CoapOption));
 	accept->length = 2;
@@ -160,7 +166,8 @@ void send_coap_subscribe(const char * topic_name, int qos) {
 	struct CoapOption * node_id = malloc (sizeof (struct CoapOption));
 	node_id->length = strlen(account->client_id);
 	node_id->number = NODE_ID;
-	node_id->value = account->client_id;
+	node_id->value = malloc(sizeof(char*)*(node_id->length+1));
+	strcpy((char *)node_id->value, account->client_id);
 	options[3] = *node_id;
 
 	message->options = options;
@@ -194,25 +201,30 @@ void send_coap_message(const char * content, const char * topic_name, int qos, i
 	message->message_id = ++current_packet_number;
 	char str[5];
 	sprintf(str, "%d", current_packet_number);
-	message->token = str;
+	message->token = malloc ((strlen(str)+1)*sizeof (char));
+	strcpy(message->token, str);
 	message->type = CONFIRMABLE;
 	message->code = PUT;
-	message->payload = content;
+	message->payload = malloc(sizeof(char*) * (strlen(content)+1));
+	strcpy((char *)message->payload, (char *)content);
 	struct CoapOption * options = malloc (sizeof (struct CoapOption)*3);
 	struct CoapOption * uri_path = malloc (sizeof (struct CoapOption));
 	uri_path->length = strlen(topic_name);
 	uri_path->number = URI_PATH;
-	uri_path->value = topic_name;
+	uri_path->value = malloc(sizeof(char*) * (uri_path->length + 1));
+	strcpy(uri_path->value, topic_name);
 	options[0] = *uri_path;
 	struct CoapOption * accept = malloc (sizeof (struct CoapOption));
 	accept->length = 2;
 	accept->number = ACCEPT;
-	accept->value = qos_value;
+	accept->value = malloc(sizeof(char*)*accept->length);
+	memcpy(accept->value, qos_value, accept->length);
 	options[1] = *accept;
 	struct CoapOption * node_id = malloc (sizeof (struct CoapOption));
 	node_id->length = strlen(account->client_id);
 	node_id->number = NODE_ID;
-	node_id->value = account->client_id;
+	node_id->value = malloc(sizeof(char*) * (node_id->length + 1));
+	strcpy(node_id->value, account->client_id);
 	options[2] = *node_id;
 	message->options = options;
 	message->options_amount = 3;
@@ -230,27 +242,31 @@ void send_coap_unsubscribe(const char * topic_name) {
 	message->message_id = ++current_packet_number;
 	char str[5];
 	sprintf(str, "%d", current_packet_number);
-	message->token = str;
+	message->token = malloc ((strlen(str)+1)*sizeof (char));
+	strcpy(message->token, str);
 	message->type = CONFIRMABLE;
 	message->code = GET;
-	char payload [1] = {0x00};
-	message->payload = payload;
+	message->payload = malloc(sizeof(char*));
+	message->payload[0] = 0x00;
 	struct CoapOption * options = malloc (sizeof (struct CoapOption)*3);
 	struct CoapOption * observe = malloc (sizeof (struct CoapOption));
 	observe->length = 4;
 	observe->number = OBSERVE;
 	char observe_value [4] = { 0x00, 0x00, 0x00, 0x01 };
-	observe->value = observe_value;
+	observe->value = malloc(sizeof(char*) * observe->length);
+	memcpy((char *)observe->value, observe_value, observe->length);
 	options[0] = *observe;
 	struct CoapOption * uri_path = malloc (sizeof (struct CoapOption));
 	uri_path->length = strlen(topic_name);
 	uri_path->number = URI_PATH;
-	uri_path->value = topic_name;
+	uri_path->value = malloc(sizeof(char*) * (uri_path->length + 1));
+	strcpy((char *)uri_path->value,topic_name);
 	options[1] = *uri_path;
 	struct CoapOption * node_id = malloc (sizeof (struct CoapOption));
 	node_id->length = strlen(account->client_id);
 	node_id->number = NODE_ID;
-	node_id->value = account->client_id;
+	node_id->value = malloc(sizeof(char*) * (node_id->length + 1));
+	strcpy((char *)node_id->value, account->client_id);
 	options[2] = *node_id;
 	message->options = options;
 	message->options_amount = 3;
@@ -263,16 +279,16 @@ void send_coap_unsubscribe(const char * topic_name) {
 void coap_send_ping() {
 
 	struct CoapMessage * message = malloc (sizeof (struct CoapMessage));
-
 	message->version = COAP_PROTOCOL_VERSION;
 	message->message_id = 0;
 	char str[5];
 	sprintf(str, "%d", 0);
-	message->token = str;
+	message->token = malloc ((strlen(str)+1)*sizeof (char));
+	strcpy(message->token, str);
 	message->type = CONFIRMABLE;
 	message->code = PUT;
-	char payload [1] = {0x00};
-	message->payload = payload;
+	message->payload = malloc(sizeof(char*));
+	message->payload[0] = 0x00;
 	struct CoapOption * options = malloc (sizeof (struct CoapOption)*1);
 	struct CoapOption * node_id = malloc (sizeof (struct CoapOption));
 	node_id->length = strlen(account->client_id);

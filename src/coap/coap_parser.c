@@ -25,7 +25,7 @@
 
 char * coap_encode(struct CoapMessage * message, int * length) {
 
-	int buf_size = 256 + (message->payload != NULL ? strlen(message->payload) : 0);
+	int buf_size = 256 + ((message->code == PUT && message->message_id > 0) ? strlen(message->payload) : 0);
 	char * buf = malloc(sizeof(char) * buf_size);
 	int i = 0;
 	char first_byte = 0;

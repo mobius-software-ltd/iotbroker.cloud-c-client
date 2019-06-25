@@ -79,8 +79,7 @@ static void *coap_message_resend_task(void *arg)
 		 g_hash_table_iter_init (&iter, messages_map);
 		 while (g_hash_table_iter_next (&iter, &key, &value))
 		 {
-			struct CoapMessage * coap_message = (struct CoapMessage *)value;
-			int diff = time(NULL)-coap_message->time_stamp;
+			int diff = time(NULL)-((struct CoapMessage *)value)->time_stamp;
 			if( (diff) > 10)
 				coap_encode_and_fire((struct CoapMessage *)value);
 		 }
