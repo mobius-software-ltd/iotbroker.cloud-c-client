@@ -192,6 +192,8 @@ static void sigint_handler(int sig)
 int open_lws_net_connection(const char * host, int port, struct TcpListener * client,
 		int _is_secure, const char * cert, const char * cert_password, enum Protocol protocol) {
 
+	lws_set_log_level(0, NULL);
+
 	q = g_queue_new();
 
 	current_protocol = protocol;
