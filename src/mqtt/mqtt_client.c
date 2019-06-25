@@ -128,8 +128,8 @@ void send_subscribe(const char * topic_name, int qos) {
 	subscribe = malloc (sizeof (struct Subscribe));
 	subscribe->topics = malloc (sizeof (struct Topic)*1);
 	subscribe->topics->qos = qos;
-	subscribe->topics->topic_name = malloc (sizeof (char)*strlen(topic_name));
-	subscribe->topics->topic_name = topic_name;
+	subscribe->topics->topic_name = malloc (sizeof (char) * (strlen(topic_name) + 1));
+	strcpy((char *)subscribe->topics->topic_name, topic_name);
 	subscribe->packet_id = ++current_packet_number;
 	subscribe->topics_number = 1;//currently support only one topic
 	struct Message * message = malloc (sizeof (struct Message));
@@ -146,8 +146,8 @@ void send_unsubscribe(const char * topic_name) {
 
 	struct Unsubscribe * unsubscribe = malloc (sizeof (struct Unsubscribe));
 	unsubscribe->topics = malloc (sizeof (struct Topic)*1);
-	unsubscribe->topics->topic_name = malloc (sizeof (char)*strlen(topic_name));
-	unsubscribe->topics->topic_name = topic_name;
+	unsubscribe->topics->topic_name = malloc (sizeof (char) * (strlen(topic_name) + 1));
+	strcpy(unsubscribe->topics->topic_name, topic_name);
 
 	unsubscribe->packet_id = ++current_packet_number;
 	unsubscribe->topics_number = 1;
@@ -165,8 +165,10 @@ void send_unsubscribe(const char * topic_name) {
 void send_publish(const char * content, const char * topic_name, int qos, int retain, int dup) {
 
 	struct Publish * publish = malloc (sizeof (struct Publish));
-	publish->content = content;
-	publish->topic.topic_name = topic_name;
+	publish->content = malloc(sizeof(char *) * (strlen(content) + 1));
+	strcpy((char *)publish->content, content);
+	publish->topic.topic_name = malloc(sizeof(char *) * (strlen(topic_name) + 1));
+	strcpy((char *)publish->topic.topic_name, topic_name);
 	publish->topic.qos = qos;
 	publish->dup = dup;
 	publish->retain = retain;
