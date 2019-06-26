@@ -299,7 +299,7 @@ void process_rx(char * data, int length) {
 			} else {
 				//connection unsuccessful
 				mqtt_listener->cu_pt(ca->return_code);
-				//lws_close_tcp_connection();
+				lws_close_tcp_connection();
 			}
 
 			break;
