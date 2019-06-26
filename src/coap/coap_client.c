@@ -42,8 +42,6 @@ static int current_packet_number = 0;
 static int delay_in_seconds = 0;
 static int init_connect = 0;
 
-pthread_mutex_t lock;
-
 void process_coap_rx(char * data, int length);
 void coap_connect(struct Account * acc);
 void send_coap_subscribe(const char * topic_name, int qos);
@@ -62,12 +60,10 @@ void coap_encode_and_fire(struct CoapMessage * coap_message) {
 	int total_length = 256;
 	char * buf = coap_encode(coap_message, &total_length);
 	//send
-	pthread_mutex_lock(&lock);
 	if(account->is_secure)
 		dtls_fire(buf,total_length);
 	else
 		write_to_net(buf,total_length);
-	pthread_mutex_unlock(&lock);
 }
 
 int init_coap_client(struct Account * acc, struct MqttListener * listener) {
