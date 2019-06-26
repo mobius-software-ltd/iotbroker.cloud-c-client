@@ -37,6 +37,7 @@ void get_message(const char * content, const char * topic_name, int qos, int ret
 void remove_topic_from_list_box(const gchar* name);
 
 static enum Protocol current_protocol;
+static GtkWidget * scrolled_win = NULL;
 static GtkWidget *main_window;
 struct MqttListener * mqtt_listener;
 struct Topic * current_topic = NULL;
@@ -51,6 +52,7 @@ GtkWidget *content_entry;
 void discard_handler (GtkWidget *widget, GdkEventExpose *event, gpointer data)
 {
 	gtk_widget_destroy(widget);
+	scrolled_win = NULL;
 	//gtk_widget_set_sensitive(GTK_WIDGET (data), TRUE);
 }
 
@@ -71,42 +73,45 @@ static void save_content_button_handle(GtkWidget *widget, gpointer data) {
 	parent = gtk_widget_get_parent(parent);
 	parent = gtk_widget_get_parent(parent);
 	gtk_widget_destroy(GTK_WIDGET(parent));
+	scrolled_win = NULL;
 
 }
 
 static void show_dialog_window(GtkWidget *widget, GdkEvent  *event, gpointer user_data) {
 
-	GtkWidget * scrolled_window = gtk_scrolled_window_new (NULL,NULL);
-	gtk_container_set_border_width (GTK_CONTAINER (scrolled_window), 0);
-	gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (scrolled_window), GTK_POLICY_AUTOMATIC, GTK_POLICY_ALWAYS);
+	if(scrolled_win == NULL) {
+		scrolled_win = gtk_scrolled_window_new (NULL,NULL);
+		gtk_container_set_border_width (GTK_CONTAINER (scrolled_win), 0);
+		gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (scrolled_win), GTK_POLICY_AUTOMATIC, GTK_POLICY_ALWAYS);
 
-	GtkWidget *_button, *text_view;
-	GtkWidget *dialog_window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
-	gtk_window_set_title (GTK_WINDOW (dialog_window), "Enter data");
-	gtk_window_set_resizable (GTK_WINDOW (dialog_window), FALSE);
-	gtk_widget_set_size_request (dialog_window, 300, 300);
-	gtk_window_set_position (GTK_WINDOW (dialog_window), GTK_WIN_POS_CENTER);
+		GtkWidget *_button, *text_view;
+		GtkWidget *dialog_window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
+		gtk_window_set_title (GTK_WINDOW (dialog_window), "Enter data");
+		gtk_window_set_resizable (GTK_WINDOW (dialog_window), FALSE);
+		gtk_widget_set_size_request (dialog_window, 300, 300);
+		gtk_window_set_position (GTK_WINDOW (dialog_window), GTK_WIN_POS_CENTER);
 
-	GtkWidget * _box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 1);
+		GtkWidget * _box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 1);
 
-	GtkTextBuffer *buffer;
-	buffer = gtk_text_buffer_new (NULL);
-	gchar * text = gtk_entry_get_text(GTK_ENTRY(content_entry));
+		GtkTextBuffer *buffer;
+		buffer = gtk_text_buffer_new (NULL);
+		gchar * text = gtk_entry_get_text(GTK_ENTRY(content_entry));
 
-	gtk_text_buffer_set_text(buffer,text, strlen(text));
-	text_view = gtk_text_view_new_with_buffer (buffer);
+		gtk_text_buffer_set_text(buffer,text, strlen(text));
+		text_view = gtk_text_view_new_with_buffer (buffer);
 
-	gtk_container_add(GTK_CONTAINER(scrolled_window), text_view);
-	gtk_box_pack_start(GTK_BOX(_box), GTK_WIDGET(scrolled_window), TRUE, TRUE, 1);
+		gtk_container_add(GTK_CONTAINER(scrolled_win), text_view);
+		gtk_box_pack_start(GTK_BOX(_box), GTK_WIDGET(scrolled_win), TRUE, TRUE, 1);
 
-	_button = gtk_button_new_with_label("OK");
-	g_signal_connect(_button, "clicked", G_CALLBACK (save_content_button_handle), text_view);
+		_button = gtk_button_new_with_label("OK");
+		g_signal_connect(_button, "clicked", G_CALLBACK (save_content_button_handle), text_view);
 
-	gtk_box_pack_end(GTK_BOX(_box), GTK_WIDGET(_button), FALSE, TRUE, 1);
-	gtk_container_add(GTK_CONTAINER(dialog_window), _box);
+		gtk_box_pack_end(GTK_BOX(_box), GTK_WIDGET(_button), FALSE, TRUE, 1);
+		gtk_container_add(GTK_CONTAINER(dialog_window), _box);
 
-	g_signal_connect(G_OBJECT(dialog_window), "delete_event", G_CALLBACK(discard_handler), widget);
-	gtk_widget_show_all(dialog_window);
+		g_signal_connect(G_OBJECT(dialog_window), "delete_event", G_CALLBACK(discard_handler), widget);
+		gtk_widget_show_all(dialog_window);
+	}
 }
 
 static void above_button(GtkWidget *window, gpointer data)
