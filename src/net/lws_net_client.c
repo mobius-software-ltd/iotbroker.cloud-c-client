@@ -146,11 +146,14 @@ static int callback_minimal_broker(struct lws *wsi, enum lws_callback_reasons re
 	case LWS_CALLBACK_CLIENT_WRITEABLE: {
 
 		struct DataWrapper * pending_data  = g_queue_pop_head(q);
-		char buf[LWS_PRE + pending_data->length];
-		memcpy(&buf[LWS_PRE],pending_data->data, pending_data->length);
-		lws_write(vhd->client_wsi, &buf[LWS_PRE], pending_data->length, LWS_WRITE_TEXT);
-		if(!g_queue_is_empty(q))
-			lws_callback_on_writable(vhd->client_wsi);
+		if(pending_data != NULL)
+		{
+			char buf[LWS_PRE + pending_data->length];
+			memcpy(&buf[LWS_PRE],pending_data->data, pending_data->length);
+			lws_write(vhd->client_wsi, &buf[LWS_PRE], pending_data->length, LWS_WRITE_TEXT);
+			if(!g_queue_is_empty(q))
+				lws_callback_on_writable(vhd->client_wsi);
+		}
 
 	}
 	break;
