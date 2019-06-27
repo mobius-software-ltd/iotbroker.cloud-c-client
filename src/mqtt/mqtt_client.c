@@ -96,9 +96,12 @@ void send_connect(struct Account * account) {
 	//prepare connect packet
 	delay_in_seconds = account->keep_alive;
 	struct Connect * connect_packet = malloc (sizeof (struct Connect));
-	connect_packet->username = account->username;
-	connect_packet->password = account->password;
-	connect_packet->client_id = account->client_id;
+	connect_packet->username = malloc (sizeof (char*)*(1+strlen(account->username)));
+	strcpy(connect_packet->username, account->username);
+	connect_packet->password = malloc (sizeof (char*)*(1+strlen(account->password)));
+	strcpy(connect_packet->password, account->password);
+	connect_packet->client_id = malloc (sizeof (char*)*(1+strlen(account->client_id)));
+	strcpy(connect_packet->client_id, account->client_id);
 	connect_packet->clean_session = account->clean_session;
 	connect_packet->keepalive = account->keep_alive;
 	connect_packet->protocol_level = 4;
@@ -128,7 +131,7 @@ void send_subscribe(const char * topic_name, int qos) {
 	subscribe = malloc (sizeof (struct Subscribe));
 	subscribe->topics = malloc (sizeof (struct Topic)*1);
 	subscribe->topics->qos = qos;
-	subscribe->topics->topic_name = malloc (sizeof (char) * (strlen(topic_name) + 1));
+	subscribe->topics->topic_name = malloc (sizeof (char*) * (strlen(topic_name) + 1));
 	strcpy((char *)subscribe->topics->topic_name, topic_name);
 	subscribe->packet_id = ++current_packet_number;
 	subscribe->topics_number = 1;//currently support only one topic
@@ -146,7 +149,7 @@ void send_unsubscribe(const char * topic_name) {
 
 	struct Unsubscribe * unsubscribe = malloc (sizeof (struct Unsubscribe));
 	unsubscribe->topics = malloc (sizeof (struct Topic)*1);
-	unsubscribe->topics->topic_name = malloc (sizeof (char) * (strlen(topic_name) + 1));
+	unsubscribe->topics->topic_name = malloc (sizeof (char*) * (strlen(topic_name) + 1));
 	strcpy(unsubscribe->topics->topic_name, topic_name);
 
 	unsubscribe->packet_id = ++current_packet_number;
@@ -264,7 +267,7 @@ void mqtt_data_received(char * buf, int readable_bytes) {
 	int length = ld.length;
 	if(length < readable_bytes && account->protocol == MQTT) {
 		do {
-			char * next_bytes = malloc(length * sizeof(char));
+			char * next_bytes = malloc(length * sizeof(char*));
 			memcpy(next_bytes,&(buf[i]),length);
 			process_rx(next_bytes, length);
 			i += length;
@@ -365,10 +368,10 @@ void process_rx(char * data, int length) {
 
 				//remove if already present
 				remove_topic_from_list_box(s->topics->topic_name);
-				remove_topic_from_db(s->topics->topic_name);
+				//remove_topic_from_db(s->topics->topic_name);
 				//add topic to DB and GUI
 				add_topics_to_list_box(s->topics->topic_name, s->topics->qos);
-				save_topic_to_db(s->topics->topic_name, s->topics->qos);
+				//save_topic_to_db(s->topics->topic_name, s->topics->qos);
 
 			} else {
 				char buf[50];
@@ -388,10 +391,10 @@ void process_rx(char * data, int length) {
 
 			struct Unsubscribe * un = (struct Unsubscribe*) m->packet;
 			//const char * topic_name = un->topics->topic_name;
-			char * topic_name = malloc(sizeof (char)*(strlen(un->topics->topic_name)+1));
+			char * topic_name = malloc(sizeof (char*)*(strlen(un->topics->topic_name)+1));
 			strcpy(topic_name,un->topics->topic_name);
 			remove_topic_from_list_box(topic_name);
-			remove_topic_from_db(topic_name);
+			//remove_topic_from_db(topic_name);
 			remove_message_from_map(us->packet_id);
 			break;
 		}

@@ -274,7 +274,8 @@ void fire(char * s) {
 	data->data = malloc(sizeof(char*)*(data->length+1));
 	strcpy(data->data, s);
 
-	g_queue_push_tail(q, data);
+	if(q!=NULL)
+		g_queue_push_tail(q, data);
 	lws_callback_on_writable(vhd->client_wsi);
 
 }
@@ -285,7 +286,8 @@ void raw_fire(char * s, int len) {
 	data->data = malloc(sizeof(char*)*len);
 	memcpy(data->data, s, len);
 	data->length = len;
-	g_queue_push_tail(q, data);
+	if(q!=NULL)
+		g_queue_push_tail(q, data);
 	lws_callback_on_writable(vhd->client_wsi);
 
 }
