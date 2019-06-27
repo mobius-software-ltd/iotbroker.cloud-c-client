@@ -368,10 +368,10 @@ void process_rx(char * data, int length) {
 
 				//remove if already present
 				remove_topic_from_list_box(s->topics->topic_name);
-				//remove_topic_from_db(s->topics->topic_name);
+				remove_topic_from_db(s->topics->topic_name);
 				//add topic to DB and GUI
 				add_topics_to_list_box(s->topics->topic_name, s->topics->qos);
-				//save_topic_to_db(s->topics->topic_name, s->topics->qos);
+				save_topic_to_db(s->topics->topic_name, s->topics->qos);
 
 			} else {
 				char buf[50];
@@ -394,7 +394,7 @@ void process_rx(char * data, int length) {
 			char * topic_name = malloc(sizeof (char*)*(strlen(un->topics->topic_name)+1));
 			strcpy(topic_name,un->topics->topic_name);
 			remove_topic_from_list_box(topic_name);
-			//remove_topic_from_db(topic_name);
+			remove_topic_from_db(topic_name);
 			remove_message_from_map(us->packet_id);
 			break;
 		}
