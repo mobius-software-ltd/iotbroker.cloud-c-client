@@ -687,37 +687,32 @@ static struct MqttModel * get_messages() {
 }
 
 void save_changes (struct Account * account) {
-	cnc = open_db_connection ();
 	create_account_table_if_not_exist (cnc);
 	insert_data(cnc, account);
 }
 
 void save_topic_to_db (const char * topic_name, int qos) {
-	cnc = open_db_connection ();
 	create_topic_table_if_not_exist (cnc);
 	insert_topic_data(cnc, topic_name, qos);
 }
 
 void remove_topic_from_db(const char * topic_name) {
-	//cnc = open_db_connection ();
 	remove_topic(cnc, topic_name);
 }
 
 void save_message (const char * _content, const char * _topic_name, int _qos, int _retain, int _dup, int _is_incoming) {
-	cnc = open_db_connection ();
 	create_message_table_if_not_exist (cnc);
 	insert_message_data(cnc, _content, _topic_name, _qos, _retain, _dup, _is_incoming);
 }
 
 void set_account_default(int id) {
-	cnc = open_db_connection ();
+
 	set_default_all ();
 	set_default(id);
 
 }
 
 void remove_account_from_db(int id){
-	cnc = open_db_connection ();
 	remove_account(id);
 }
 

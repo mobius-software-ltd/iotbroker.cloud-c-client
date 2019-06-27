@@ -270,8 +270,10 @@ int open_lws_net_connection(const char * host, int port, struct TcpListener * cl
 void fire(char * s) {
 
 	struct DataWrapper * data = malloc (sizeof (struct DataWrapper));
-	data->data = s;
 	data->length = strlen(s);
+	data->data = malloc(sizeof(char*)*(data->length+1));
+	strcpy(data->data, s);
+
 	g_queue_push_tail(q, data);
 	lws_callback_on_writable(vhd->client_wsi);
 
@@ -280,7 +282,8 @@ void fire(char * s) {
 void raw_fire(char * s, int len) {
 
 	struct DataWrapper * data = malloc (sizeof (struct DataWrapper));
-	data->data = s;
+	data->data = malloc(sizeof(char*)*len);
+	memcpy(data->data, s, len);
 	data->length = len;
 	g_queue_push_tail(q, data);
 	lws_callback_on_writable(vhd->client_wsi);
